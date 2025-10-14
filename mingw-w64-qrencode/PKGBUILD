@@ -15,35 +15,59 @@ depends=("${MINGW_PACKAGE_PREFIX}-libpng"
          "${MINGW_PACKAGE_PREFIX}-libwinpthread")
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
-  "${MINGW_PACKAGE_PREFIX}-autotools"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
   "${MINGW_PACKAGE_PREFIX}-SDL")
 source=(https://github.com/fukuchi/libqrencode/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz)
 sha256sums=('5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c')
 
 prepare() {
-  cd libqrencode-${pkgver}
-  autoreconf -fiv
+  cd "${srcdir}"/lib${_realname}-${pkgver}
 }
 
 build() {
-  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+  common_config=(
+    -G"Ninja" \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -WITH_TOOLS=NO \
+    -WITH_TESTS=NO \
+    -WITHOUT_PNG=NO \
+    -DGPROF=OFF \
+    -DCOVERAGE=OFF \
+    -DASAN=OFF \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+  )
 
-  ../libqrencode-${pkgver}/configure \
-    --prefix=${MINGW_PREFIX} \
-    --with-tests
+  msg "Build shared version"
+  mkdir -p "${srcdir}/build-shared-${MSYSTEM}" && cd "${srcdir}/build-shared-${MSYSTEM}"  
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  cmake \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    -DBUILD_SHARED_LIBS=ON \
+    "${common_config[@]}" \
+    ../lib${_realname}-${pkgver}
 
-  make
-}
+  cmake --build ./
 
-check () {
-  make check -C build-${MSYSTEM}
+  msg "Build static version"
+  mkdir -p "${srcdir}/build-static-${MSYSTEM}" && cd "${srcdir}/build-static-${MSYSTEM}"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  cmake \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    -DBUILD_SHARED_LIBS=off \
+    "${common_config[@]}" \
+    ../lib${_realname}-${pkgver}
+
+  cmake --build ./
 }
 
 package() {
-  cd "${srcdir}/build-${MSYSTEM}"
+  cd "${srcdir}/build-shared-${MSYSTEM}"
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
 
-  make DESTDIR="${pkgdir}" install
+  cd "${srcdir}/build-static-${MSYSTEM}"
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
 
-  install -Dm0644 "${srcdir}"/libqrencode-${pkgver}/COPYING \
-    "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/COPYING
+  install -Dm644 "${srcdir}/lib${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
 }
