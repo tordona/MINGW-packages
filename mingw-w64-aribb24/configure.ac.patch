@@ -1,0 +1,18 @@
+--- @PACKAGE@/configure.ac	2014-08-18 11:29:48 -0400
++++ @PACKAGE@/configure.ac.mod	2025-10-14 14:09:38 -0400
+@@ -13,13 +13,9 @@
+ LT_INIT
+ 
+ # Checks for libraries.
+-pkg_requires=""
+-PKG_CHECK_MODULES(PNG, "libpng", [
+-  AC_DEFINE(HAVE_PNG, 1, "have libpng")
+-  pkg_requires="libpng"
+-], [])
++pkg_requires="libpng"
+ 
+-AC_SUBST([PKG_REQUIRES], [$(test x$enable_shared = xno && echo ${pkg_requires})])
++AC_SUBST([PKG_REQUIRES], [${pkg_requires}])
+ 
+ AC_CHECK_FUNCS([vasprintf])
+ 
