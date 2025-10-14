@@ -19,19 +19,23 @@ depends=("${MINGW_PACKAGE_PREFIX}-cc-libs")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-ninja")
-source=("https://github.com/acoustid/${_realname}/releases/download/v${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('9d33482e56a1389a37a0d6742c376139fa43e3b8a63d29003222b93db2cb40da')
+source=("https://github.com/acoustid/${_realname}/releases/download/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "libchromaprint.pc.cmake.patch")
+sha256sums=('9d33482e56a1389a37a0d6742c376139fa43e3b8a63d29003222b93db2cb40da'
+            'dc822418cf9b82e9d1a512bbfd0bc7426f1d08f952dffd4afbc651dfa60a91a9')
+options=('libtool' 'staticlibs')
 
 prepare() {
+  sed -i "s/@PACKAGE@/${_realname}-${pkgver}/g" "libchromaprint.pc.cmake.patch"
   cd "${srcdir}"/${_realname}-${pkgver}
-
+  patch -Np1 -i "${srcdir}/libchromaprint.pc.cmake.patch"
 }
 
 build() {
   _common_opts=(
     -G"Ninja"
     -DCMAKE_BUILD_TYPE=Release \
-    -DFFT_LIB=kissfft \
+    -DFFT_LIB=fftw3 \
     -DAUDIO_PROCESSOR_LIB="dummy" \
     -DBUILD_TESTS=off \
     -DBUILD_TOOLS=off \
@@ -63,11 +67,11 @@ build() {
 }
 
 package() {
-  # static
-  cd "${srcdir}/static-${MSYSTEM}"
-  DESTDIR="${pkgdir}" cmake --install ./
-
   # shared
   cd "${srcdir}/shared-${MSYSTEM}"
+  DESTDIR="${pkgdir}" cmake --install ./
+
+  # static
+  cd "${srcdir}/static-${MSYSTEM}"
   DESTDIR="${pkgdir}" cmake --install ./
 }

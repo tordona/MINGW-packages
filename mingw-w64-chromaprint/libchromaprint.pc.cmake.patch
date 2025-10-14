@@ -1,0 +1,10 @@
+--- @PACKAGE@/libchromaprint.pc.cmake		2025-08-28 13:54:00.000000000 -0400
++++ @PACKAGE@/libchromaprint.pc.cmake.mod	2025-10-10 14:21:50.395878600 -0400
+@@ -8,5 +8,6 @@
+ URL: http://acoustid.org/chromaprint
+ Version: @PROJECT_VERSION@
+ Libs: -L${libdir} -lchromaprint
++Libs.private: -lfftw3 -lstdc++
+ Cflags: -I${includedir}
+-
++Cflags.private: -DCHROMAPRINT_NODLL
