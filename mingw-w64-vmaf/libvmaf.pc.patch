@@ -1,0 +1,8 @@
+--- build-static-CLANGARM64/meson-private/libvmaf.pc	2025-10-11 23:59:16.000000000 -0400
++++ build-static-CLANGARM64/meson-private/libvmaf.pc.mod	2025-10-12 00:13:35.283057700 -0400
+@@ -6,4 +6,5 @@
+ Description: VMAF, Video Multimethod Assessment Fusion
+ Version: 3.0.0
+ Libs: -L${libdir} -lvmaf -pthread -lm
++Libs.private: -lstdc++
+ Cflags: -I${includedir} -I${includedir}/libvmaf -pthread
