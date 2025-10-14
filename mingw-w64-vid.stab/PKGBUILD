@@ -19,10 +19,13 @@ makedepends=(
 _hash='2d82492533bf5004bc2c4f8213a1b622c45f6a44'
 source=(""vid.stab-${pkgver}::git+https://github.com/georgmartius/vid.stab.git#commit=${_hash}""
         "0001-OpenMP.patch"
-        "0002-disable-sse-on-arm.patch")
+        "0002-disable-sse-on-arm.patch"
+        "create_pkgconfig_file.cmake.patch")
 sha256sums=('SKIP'
             '902d237a2cbdbec032379a2b23ba3abd0bd4f4455169c7c4994edbaf5137e1f5'
-            'c11232d1dad550363f1d69137e2ddfb7f159c8ba86040e65dc376bd757d58ca7')
+            'c11232d1dad550363f1d69137e2ddfb7f159c8ba86040e65dc376bd757d58ca7'
+            '352574ed39eaa8e2b4a5ef8b38f6e52f9f649539cd5c4f29504a8aa1defb8cc9')
+options=('libtool' 'staticlibs')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -34,11 +37,14 @@ apply_patch_with_msg() {
 }
 
 prepare() {
+  sed -i "s/@PACKAGE@/${_realname}-${pkgver}/g" "create_pkgconfig_file.cmake.patch"
+  
   cd "$srcdir"/${_realname}-${pkgver}
 
   apply_patch_with_msg \
     0001-OpenMP.patch \
-    0002-disable-sse-on-arm.patch
+    0002-disable-sse-on-arm.patch \
+    create_pkgconfig_file.cmake.patch 
 }
 
 build() {
@@ -47,23 +53,17 @@ build() {
   msg2 "Building shared library"
   mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
 
-  declare -a extra_config
-  if check_option "debug" "n"; then
-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
-  else
-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
-  fi
-
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     ${MINGW_PREFIX}/bin/cmake \
       -GNinja \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-      "${extra_config[@]}" \
+      -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_SHARED_LIBS=ON \
+      -DUSE_OMP=TRUE \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
       ../${_realname}-${pkgver}
 
   cmake --build .
-
 
   msg2 "Building static library"
   mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
@@ -73,7 +73,10 @@ build() {
       -GNinja \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       "${extra_config[@]}" \
+      -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_SHARED_LIBS=OFF \
+      -DUSE_OMP=TRUE \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
       ../${_realname}-${pkgver}
 
   cmake --build .
@@ -85,12 +88,12 @@ build() {
 #}
 
 package() {
-  msg2 "Installing static library"
-  cd "${srcdir}"/build-${MSYSTEM}-static
-  DESTDIR="${pkgdir}" cmake --install .
-
   msg2 "Installing shared library"
   cd "${srcdir}"/build-${MSYSTEM}-shared
+  DESTDIR="${pkgdir}" cmake --install .
+  
+  msg2 "Installing static library"
+  cd "${srcdir}"/build-${MSYSTEM}-static
   DESTDIR="${pkgdir}" cmake --install .
 
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"

@@ -1,0 +1,10 @@
+--- @PACKAGE@/CMakeModules/create_pkgconfig_file.cmake	2025-10-14 07:59:58 -0400
++++ @PACKAGE@/CMakeModules/create_pkgconfig_file.cmake.mod	2025-10-14 07:59:04 -0400
+@@ -17,6 +17,7 @@
+ Description: ${desc}
+ Version: ${VIDSTAB_VERSION}
+ Libs: -L\${libdir} -l${name}
++Libs.private: -lomp
+ Cflags: -I\${includedir}
+ 
+ ")
