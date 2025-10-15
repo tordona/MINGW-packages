@@ -17,14 +17,22 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "${MINGW_PACKAGE_PREFIX}-autotools")
 depends=("${MINGW_PACKAGE_PREFIX}-cc-libs")
 conflicts=("${MINGW_PACKAGE_PREFIX}-libopenmpt-modplug")
 source=("https://downloads.sourceforge.net/modplug-xmms/${_realname}-${pkgver}.tar.gz"
-        '010-mingw.patch')
+        '010-mingw.patch'
+        'fastmix.cpp.patch'
+        'libmodplug.pc.in.patch')
 sha256sums=('457ca5a6c179656d66c01505c0d95fafaead4329b9dbaa0f997d00a3508ad9de'
-            'bfb4f76dbe4abf618c3352baf4fc316d42f0237f7ffbaaa8b346abff0594c834')
+            'bfb4f76dbe4abf618c3352baf4fc316d42f0237f7ffbaaa8b346abff0594c834'
+            'fa8195f41e4d3fec956b93284ff53ce49a0be277e8b7862b902ae895cede2f54'
+            '09ba71cb0670a81fb106d22aff871340b9347fe12f07d19df309f6cf520f4194')
+options=('libtool' 'staticlibs')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
 
   patch -Np1 -i "${srcdir}/010-mingw.patch"
+  patch -Np1 -i "${srcdir}/fastmix.cpp.patch"
+  patch -Np1 -i "${srcdir}/libmodplug.pc.in.patch"
+  
   # autoreconf to get updated libtool files, for clang support
   autoreconf -fiv
 }
@@ -38,7 +46,8 @@ build() {
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
     --enable-shared \
-    --enable-static
+    --enable-static \
+    --enable-pic
 
   make
 }

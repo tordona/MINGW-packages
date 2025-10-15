@@ -1,0 +1,20 @@
+--- libmodplug-0.8.9.0/src/fastmix.cpp	2017-04-24 09:10:17 -0400
++++ libmodplug-0.8.9.0/src/fastmix.cpp.mod	2025-10-15 13:22:35 -0400
+@@ -288,7 +288,7 @@
+ // MIXING MACROS
+ // ----------------------------------------------------------------------------
+ #define SNDMIX_BEGINSAMPLELOOP8\
+-	register MODCHANNEL * const pChn = pChannel;\
++	MODCHANNEL * const pChn = pChannel;\
+ 	nPos = pChn->nPosLo;\
+ 	const signed char *p = (signed char *)(pChn->pCurrentSample+pChn->nPos);\
+ 	if (pChn->dwFlags & CHN_STEREO) p += pChn->nPos;\
+@@ -296,7 +296,7 @@
+ 	do {
+ 
+ #define SNDMIX_BEGINSAMPLELOOP16\
+-	register MODCHANNEL * const pChn = pChannel;\
++	MODCHANNEL * const pChn = pChannel;\
+ 	nPos = pChn->nPosLo;\
+ 	const signed short *p = (signed short *)(pChn->pCurrentSample+(pChn->nPos*2));\
+ 	if (pChn->dwFlags & CHN_STEREO) p += pChn->nPos;\
