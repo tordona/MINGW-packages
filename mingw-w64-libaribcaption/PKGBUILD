@@ -13,14 +13,22 @@ url='https://github.com/xqq/libaribcaption'
 license=('spdx:MIT')
 depends=(
   "${MINGW_PACKAGE_PREFIX}-cc-libs"
+  "${MINGW_PACKAGE_PREFIX}-freetype"
 )
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
   "${MINGW_PACKAGE_PREFIX}-cmake"
   "${MINGW_PACKAGE_PREFIX}-ninja"
 )
-source=("https://github.com/xqq/libaribcaption/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('278d03a0a662d00a46178afc64f32535ede2d78c603842b6fd1c55fa9cd44683')
+source=("https://github.com/xqq/libaribcaption/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "libaribcaption.pc.in.patch")
+sha256sums=('278d03a0a662d00a46178afc64f32535ede2d78c603842b6fd1c55fa9cd44683'
+            '35dfd17541715b68e51052b903c4859d7716676f21581f89e7331be1bf7cada2')
+options=('libtool' 'staticlibs')
+
+prepare() {
+  patch -Np0 -i "${srcdir}/libaribcaption.pc.in.patch"
+}
 
 build() {
   declare -a extra_config
@@ -29,19 +37,6 @@ build() {
   else
     extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
-
-  msg2 "Building static library"
-  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
-
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    "${MINGW_PREFIX}"/bin/cmake.exe \
-      -GNinja \
-      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
-      "${extra_config[@]}" \
-      -DBUILD_SHARED_LIBS=OFF \
-      ../${_realname}-${pkgver}
-
-  "${MINGW_PREFIX}"/bin/cmake.exe --build .
 
   msg2 "Building shared library"
   mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
@@ -55,13 +50,31 @@ build() {
       ../${_realname}-${pkgver}
 
   "${MINGW_PREFIX}"/bin/cmake.exe --build .
+
+  msg2 "Building static library"
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    "${MINGW_PREFIX}"/bin/cmake.exe \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      "${extra_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DARIBCC_SHARED_LIBRARY=OFF \
+      -DARIBCC_BUILD_TESTS=OFF \
+      -DARIBCC_USE_FREETYPE=ON \
+      -DARIBCC_USE_EMBEDDED_FREETYPE=OFF \
+      ../${_realname}-${pkgver}
+
+  "${MINGW_PREFIX}"/bin/cmake.exe --build .
 }
 
 package() {
-  cd "${srcdir}"/build-${MSYSTEM}-static
+  cd "${srcdir}"/build-${MSYSTEM}-shared
   DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
 
-  cd "${srcdir}"/build-${MSYSTEM}-shared
+  cd "${srcdir}"/build-${MSYSTEM}-static
   DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
 
   install -Dm644 "${srcdir}"/${_realname}-${pkgver}/LICENSE \
