@@ -18,6 +18,7 @@ source=("$url/archive/$pkgver/$_realname-$pkgver.tar.gz"
         0001-GetDependencies_point_to_correct_file.patch)
 sha256sums=('cbccae52b2c2ecc5d2757e407da567eb681241ff8dadce39d779a7219dbcf449'
             '2379f3dfc592c27111cfab1e52f6d4fd73341f39819eac119a5fed367ec87e50')
+options=('libtool' 'staticlibs')
 
 prepare() {
   cd "${srcdir}"/${_realname}-${pkgver}
@@ -25,21 +26,47 @@ prepare() {
 }
 
 build() {
+  msg2 "Building shared library"
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     "${MINGW_PREFIX}"/bin/cmake.exe \
       -GNinja \
       -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
-      -DCMAKE_BUILD_TYPE=None \
+      -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_SKIP_RPATH=YES \
       -DBUILD_SHARED_LIBS=ON \
-      -S "${_realname}-${pkgver}" \
-      -B "build-${MSYSTEM}"
+      -DUNITTEST=OFF \
+      ../${_realname}-${pkgver}
 
-  "${MINGW_PREFIX}"/bin/cmake.exe --build "build-${MSYSTEM}"
+  "${MINGW_PREFIX}"/bin/cmake.exe --build .
+  
+  msg2 "Building static library"
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    "${MINGW_PREFIX}"/bin/cmake.exe \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_SKIP_RPATH=YES \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DUNITTEST=OFF \
+      ../${_realname}-${pkgver}
+
+  "${MINGW_PREFIX}"/bin/cmake.exe --build .
 }
 
 package() {
-  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install "build-${MSYSTEM}"
+  cd "${srcdir}"/build-${MSYSTEM}-shared
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
+
+  cd "${srcdir}"/build-${MSYSTEM}-static
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
+
+  # prevent duplicate symbols with libspeex
+  objcopy --redefine-sym lpc_to_lsp=libcodec2_lpc_to_lsp "${pkgdir}"/${MSYSTEM}/lib/libcodec2.a
+  objcopy --redefine-sym lsp_to_lpc=libcodec2_lsp_to_lpc "${pkgdir}"/${MSYSTEM}/lib/libcodec2.a
 
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING" \
     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
