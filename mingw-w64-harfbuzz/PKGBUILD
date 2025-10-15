@@ -40,10 +40,10 @@ checkdepends=("${MINGW_PACKAGE_PREFIX}-python-fonttools"
               "${MINGW_PACKAGE_PREFIX}-python-setuptools")
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz"
         "001-fix-build-with-chafa.patch"
-        "002-make-library-type-in-cmake-config-unknown.patch")
+        "harfbuzz.pc.patch")
 sha256sums=('e5c81b7f6e0b102dfb000cfa424538b8e896ab78a2f4b8a5ec8cae62ab43369e'
             '26b37a1ca9872973905ecb96bcbe3f054472252320956faa74428206900d360e'
-            '6ce1063f2ac77db0b4705153031e2c6ba8d7a65a04eb759fe4178e9445406ddb')
+            '55d17f0a9a05134dcbcae728bb6fef2bc58d887564e6f004a645f44617dab4cd')
 noextract=("harfbuzz-${pkgver}.tar.xz")
 
 prepare() {
@@ -52,7 +52,6 @@ prepare() {
 
   cd ${_realname}-${pkgver}
   patch -p1 -i "${srcdir}"/001-fix-build-with-chafa.patch
-  patch -p1 -i "${srcdir}"/002-make-library-type-in-cmake-config-unknown.patch
 }
 
 build() {
@@ -135,11 +134,13 @@ check(){
 }
 
 package_harfbuzz() {
+  patch -Np0 -l -i "${srcdir}"/harfbuzz.pc.patch
+  
   pkgdesc+=" (mingw-w64)"
 
-  ${MINGW_PREFIX}/bin/meson install -C "build-${MSYSTEM}-static" --destdir "${pkgdir}"
-
   ${MINGW_PREFIX}/bin/meson install -C "build-${MSYSTEM}-shared" --destdir "${pkgdir}"
+
+  ${MINGW_PREFIX}/bin/meson install -C "build-${MSYSTEM}-static" --destdir "${pkgdir}"
 
   if [[ ${CARCH} != i686 ]]; then
 
