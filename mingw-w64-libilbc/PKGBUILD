@@ -19,30 +19,48 @@ sha256sums=('70a37660e59f999dbde8fd10fb0fb375baf8dd02093ab4b32f94bc4abaac4358'
             'SKIP')
 
 build() {
-  declare -a extra_config
-  if check_option "debug" "n"; then
-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
-  else
-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
-  fi
-
-  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
-
+  common_config=(
+    -G"Ninja" \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX}
+    -DCMAKE_BUILD_TYPE=Release
+  )
+    
+  msg "Build shared version"
+  mkdir -p "${srcdir}/build-${MSYSTEM}-shared" && cd "${srcdir}/build-${MSYSTEM}-shared" 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake \
-    -G"MSYS Makefiles" \
-    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-    "${extra_config[@]}" \
+  cmake \
     -DBUILD_SHARED_LIBS=ON \
+    "${common_config[@]}" \
     ../${_realname}-${pkgver}
 
-  make
+  cmake --build ./
+
+  msg "Build static version"
+  mkdir -p "${srcdir}/build-${MSYSTEM}-static" && cd "${srcdir}/build-${MSYSTEM}-static"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  cmake \
+    -DBUILD_SHARED_LIBS=OFF \
+    "${common_config[@]}" \
+    ../${_realname}-${pkgver}
+
+  cmake --build ./
+  
+  
 }
 
 package() {
-  cd "${srcdir}"/build-${MSYSTEM}
-  make DESTDIR="${pkgdir}" install
+  # Install shared
+  cd "${srcdir}/build-${MSYSTEM}-shared"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
 
-  install -D -m644 "${srcdir}"/${_realname}-${pkgver}/COPYING "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
-  install -D -m644 "${srcdir}"/${_realname}-${pkgver}/PATENTS -t "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}"
+  # Install static
+  cd "${srcdir}/build-${MSYSTEM}-static"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+  
+  # cd "${srcdir}"/build-${MSYSTEM}
+  # make DESTDIR="${pkgdir}" install
+
+  INSTALL -Dm644 "${srcdir}"/${_realname}-${pkgver}/COPYING "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+  INSTALL -Dm644 "${srcdir}"/${_realname}-${pkgver}/PATENTS "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/PATENTS"
+
 }
