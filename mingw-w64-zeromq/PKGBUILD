@@ -1,0 +1,84 @@
+# From Greblus: https://blog.greblus.net/2014/11/18/msys2mingw-w64-cython-i-ipython-notebook/
+
+_realname=zeromq
+_commonname=libzmq
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=4.3.5
+pkgrel=4
+pkgdesc="Fast messaging system built on sockets, C and C++ bindings. aka 0MQ, ZMQ (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://www.zeromq.org/"
+msys2_repository_url="https://github.com/zeromq/libzmq/"
+msys2_references=(
+  "cpe: cpe:/a:zeromq:libzmq"
+  "cpe: cpe:/a:zeromq:zeromq"
+)
+license=("spdx:MPL-2.0")
+depends=("${MINGW_PACKAGE_PREFIX}-libsodium"
+         "${MINGW_PACKAGE_PREFIX}-libwinpthread")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-cmake"
+             "${MINGW_PACKAGE_PREFIX}-ninja")
+optdepends=("${MINGW_PACKAGE_PREFIX}-cppzmq: C++ binding for libzmq")
+_hash='7a7bfa10e6b0e99210ed9397369b59f9e69cef8e'
+source=("${_commonname}-${pkgver}::git+https://github.com/zeromq/libzmq.git#commit=${_hash}")
+sha256sums=('SKIP')
+
+prepare() {
+  cd ${_commonname}-${pkgver}
+}
+
+build() {
+  common_config=(
+    -G"Ninja"
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX}
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_TESTS=OFF
+    -DENABLE_INTRINSICS=ON
+    -DENABLE_DRAFTS=OFF
+    -DWITH_DOCS=OFF
+    -DENABLE_CPACK=OFF
+    -DENABLE_NO_EXPORT=ON
+    -DPOLLER=epoll
+  )
+
+  # Build shared
+  mkdir -p "${srcdir}/build-${MSYSTEM}-shared" && cd "${srcdir}/build-${MSYSTEM}-shared"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  ${MINGW_PREFIX}/bin/cmake \
+    "${common_config[@]}" \
+    -DBUILD_SHARED=ON \
+    -DBUILD_STATIC=OFF \
+  ../${_commonname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+
+  # Build static
+  mkdir -p "${srcdir}/build-${MSYSTEM}-static" && cd "${srcdir}/build-${MSYSTEM}-static"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  ${MINGW_PREFIX}/bin/cmake \
+    "${common_config[@]}" \
+    -DBUILD_SHARED=OFF \
+    -DBUILD_STATIC=ON \
+  ../${_commonname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+}
+
+package() {
+  # Install shared
+  cd "${srcdir}/build-${MSYSTEM}-shared"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+
+  # Install static
+  cd "${srcdir}/build-${MSYSTEM}-static"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+ 
+  # Fix .pc file
+  local PREFIX_WIN=$(cygpath -m ${MINGW_PREFIX})
+  sed -e "s|${PREFIX_WIN}|${MINGW_PREFIX}|g" -i "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/libzmq.pc
+  echo "Cflags.private: -DZMQ_NO_EXPORT -DZMQ_STATIC" >> "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/libzmq.pc
+}
