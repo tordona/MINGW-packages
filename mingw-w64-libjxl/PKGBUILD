@@ -31,76 +31,73 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-asciidoc"
              "${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2")
 optdepends=("${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2: for gdk-pixbuf loader")
-source=("https://github.com/libjxl/libjxl/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('1492dfef8dd6c3036446ac3b340005d92ab92f7d48ee3271b5dac1d36945d3d9')
+source=("https://github.com/libjxl/libjxl/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "libjxl.pc.in.patch"
+        "libjxl_threads.pc.in.patch")
+sha256sums=('1492dfef8dd6c3036446ac3b340005d92ab92f7d48ee3271b5dac1d36945d3d9'
+            'b68280647049e9cfc2a5d276ad3b2d6474b6c24781ff5331fa5a5006e810e711'
+            '4eb5473eb1c7b9781dd1fcd8ae5083dc596fc10dbc1b4d9f7139fd5a3bdc1f1b')
 noextract=("${_realname}-${pkgver}.tar.gz")
+options=('libtool' 'staticlibs')
 
 prepare() {
   tar -xzf "${_realname}-${pkgver}.tar.gz" || true
+ 
+  sed -i "s/@PACKAGE@/${_realname}-${pkgver}/g" "libjxl.pc.in.patch"
+  sed -i "s/@PACKAGE@/${_realname}-${pkgver}/g" "libjxl_threads.pc.in.patch"
+  
+  patch -Np0 -i "${srcdir}/libjxl.pc.in.patch"
+  patch -Np0 -i "${srcdir}/libjxl_threads.pc.in.patch"
 }
 
 build() {
-  declare -a _extra_config
-  if check_option "debug" "n"; then
-    _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
-  else
-    _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
-  fi
+  common_config=(
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX}
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    -DBUILD_TESTING=OFF 
+    -DJPEGXL_STATIC=OFF
+    -DJPEGXL_BUNDLE_LIBPNG=OFF
+    -DJPEGXL_ENABLE_BENCHMARK=OFF
+    -DJPEGXL_ENABLE_DEVTOOLS=OFF
+    -DJPEGXL_ENABLE_DOXYGEN=OFF
+    -DJPEGXL_ENABLE_EXAMPLES=OFF
+    -DJPEGXL_EMSCRIPTEN=OFF
+    -DJPEGXL_ENABLE_JPEGLI=OFF
+    -DJPEGXL_ENABLE_JNI=OFF
+    -DJPEGXL_ENABLE_MANPAGES=OFF
+    -DJPEGXL_ENABLE_PLUGINS=OFF
+    -DJPEGXL_ENABLE_SJPEG=OFF
+    -DJPEGXL_ENABLE_SKCMS=OFF
+    -DJPEGXL_ENABLE_TCMALLOC=OFF
+    -DJPEGXL_ENABLE_TOOLS=OFF
+    -DJPEGXL_ENABLE_VIEWERS=OFF
+    -DJPEGXL_FORCE_SYSTEM_BROTLI=ON
+    -DJPEGXL_FORCE_SYSTEM_HWY=ON
+    -DJPEGXL_FORCE_SYSTEM_LCMS2=ON
+    -DJPEGXL_VERSION=${pkgver}-${pkgrel}
+    -DJPEGXL_WARNINGS_AS_ERRORS=OFF
+  )
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake \
     -G"Ninja" \
-    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-    "${_extra_config[@]}" \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_TESTING=OFF \
-    -DJPEGXL_BUNDLE_LIBPNG=OFF \
-    -DJPEGXL_ENABLE_BENCHMARK=OFF \
-    -DJPEGXL_ENABLE_DOXYGEN=OFF \
-    -DJPEGXL_ENABLE_EXAMPLES=OFF \
-    -DJPEGXL_ENABLE_JNI=OFF \
-    -DJPEGXL_ENABLE_PLUGINS=OFF \
-    -DJPEGXL_ENABLE_SJPEG=OFF \
-    -DJPEGXL_ENABLE_SKCMS=OFF \
-    -DJPEGXL_ENABLE_TCMALLOC=OFF \
-    -DJPEGXL_ENABLE_TOOLS=OFF \
-    -DJPEGXL_FORCE_SYSTEM_BROTLI=ON \
-    -DJPEGXL_FORCE_SYSTEM_HWY=ON \
-    -DJPEGXL_FORCE_SYSTEM_LCMS2=ON \
-    -DJPEGXL_VERSION=${pkgver}-${pkgrel} \
-    -DJPEGXL_WARNINGS_AS_ERRORS=OFF \
-    -S ${_realname}-${pkgver} \
-    -B build-${MSYSTEM}-static
-
-  ${MINGW_PREFIX}/bin/cmake --build build-${MSYSTEM}-static
-
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake \
-    -G"Ninja" \
-    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-    "${_extra_config[@]}" \
+    "${common_config[@]}" \
     -DBUILD_SHARED_LIBS=ON \
-    -DBUILD_TESTING=OFF \
-    -DJPEGXL_BUNDLE_LIBPNG=OFF \
-    -DJPEGXL_ENABLE_BENCHMARK=OFF \
-    -DJPEGXL_ENABLE_DOXYGEN=OFF \
-    -DJPEGXL_ENABLE_EXAMPLES=OFF \
-    -DJPEGXL_ENABLE_JNI=OFF \
-    -DJPEGXL_ENABLE_PLUGINS=ON \
-    -DJPEGXL_ENABLE_PLUGIN_GIMP210=OFF \
-    -DJPEGXL_ENABLE_PLUGIN_MIME=OFF \
-    -DJPEGXL_ENABLE_SJPEG=OFF \
-    -DJPEGXL_ENABLE_SKCMS=OFF \
-    -DJPEGXL_ENABLE_TCMALLOC=OFF \
-    -DJPEGXL_FORCE_SYSTEM_BROTLI=ON \
-    -DJPEGXL_FORCE_SYSTEM_HWY=ON \
-    -DJPEGXL_FORCE_SYSTEM_LCMS2=ON \
-    -DJPEGXL_VERSION=${pkgver}-${pkgrel} \
-    -DJPEGXL_WARNINGS_AS_ERRORS=OFF \
     -S ${_realname}-${pkgver} \
     -B build-${MSYSTEM}-shared
 
   ${MINGW_PREFIX}/bin/cmake --build build-${MSYSTEM}-shared
+  
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  ${MINGW_PREFIX}/bin/cmake \
+    -G"Ninja" \
+    "${common_config[@]}" \
+    -DBUILD_SHARED_LIBS=OFF \
+    -S ${_realname}-${pkgver} \
+    -B build-${MSYSTEM}-static
+
+  ${MINGW_PREFIX}/bin/cmake --build build-${MSYSTEM}-static
 }
 
 check() {
@@ -109,8 +106,8 @@ check() {
 }
 
 package() {
-  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install build-${MSYSTEM}-static
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install build-${MSYSTEM}-shared
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install build-${MSYSTEM}-static
 
   install -Dm644 "${srcdir}"/${_realname}-${pkgver}/LICENSE \
     "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE

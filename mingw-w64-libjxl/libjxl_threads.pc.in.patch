@@ -1,0 +1,10 @@
+--- @PACKAGE@/lib/threads/libjxl_threads.pc.in	2024-11-26 08:02:35.000000000 -0500
++++ @PACKAGE@/lib/threads/libjxl_threads.pc.in.mod	2025-10-12 12:57:30.431417700 -0400
+@@ -8,6 +8,6 @@
+ Version: @JPEGXL_LIBRARY_VERSION@
+ @JPEGXL_REQUIRES_TYPE@: @JPEGXL_THREADS_LIBRARY_REQUIRES@
+ Libs: -L${libdir} -ljxl_threads
+-Libs.private: -lm
++Libs.private: -lm -lstdc++ -ladvapi32
+ Cflags: -I${includedir}
+ Cflags.private: -DJXL_THREADS_STATIC_DEFINE
