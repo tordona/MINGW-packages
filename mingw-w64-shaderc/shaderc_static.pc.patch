@@ -1,0 +1,11 @@
+--- @BUILDPATH@/shaderc_static.pc	2025-10-17 15:30:51 -0400
++++ @BUILDPATH@/shaderc_static.pc.mod	2025-10-04 14:33:58 -0400
+@@ -8,5 +8,7 @@
+ Version: 2023.8.1
+ URL: https://github.com/google/shaderc
+ 
+-Libs: -L${libdir} -lshaderc  -lshaderc_util
++Libs: -L${libdir} -lshaderc -lshaderc_util
++Libs.private: -lglslang -lstdc++
+ Cflags: -I${includedir}
++Requires: SPIRV-Tools

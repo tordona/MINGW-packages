@@ -23,9 +23,15 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-spirv-headers"
              "${MINGW_PACKAGE_PREFIX}-asciidoctor")
 source=("https://github.com/google/shaderc/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
-        "0001-fix-glslang-hlsl-linking-order.patch")
+        "0001-fix-glslang-hlsl-linking-order.patch"
+        "shaderc.pc.patch"
+        "shaderc_combined.pc.patch"
+        "shaderc_static.pc.patch")
 sha256sums=('8a89fb6612ace8954470aae004623374a8fc8b7a34a4277bee5527173b064faf'
-            'af880b221603e2b5c34dd306feeb4fa9af5803ebc841d64ab8e4be0e7455a6ba')
+            'af880b221603e2b5c34dd306feeb4fa9af5803ebc841d64ab8e4be0e7455a6ba'
+            '2390b6f5970119f65fe1bd93376703a2df285be644d0c1106bb4bbea1108365b'
+            '768be556f688459a0bc07f27fcb14c61b9990f291fc14a9ebbe43a0f72d06466'
+            '04fde160dd6f63a94d7fce1ee0a3cc9cc0a6c597923c527df4e6b35e02d28762')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
@@ -77,10 +83,24 @@ build() {
 }
 
 package() {
+  sed -i "s/@BUILDPATH@/build-${MSYSTEM}/g" "${srcdir}/shaderc.pc.patch"
+  sed -i "s/@BUILDPATH@/build-${MSYSTEM}/g" "${srcdir}/shaderc_combined.pc.patch"
+  sed -i "s/@BUILDPATH@/build-${MSYSTEM}/g" "${srcdir}/shaderc_static.pc.patch"
+  
+  patch -Np0 -i "${srcdir}/shaderc.pc.patch"
+  patch -Np0 -i "${srcdir}/shaderc_combined.pc.patch"
+  patch -Np0 -i "${srcdir}/shaderc_static.pc.patch"
+  
   cd "${srcdir}/build-${MSYSTEM}"
 
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
 
+  cp "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/shaderc.pc "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/shaderc_shared.pc
+  cp "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/shaderc_static.pc "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/shaderc.pc
+
+  cp ./libshaderc_util/libshaderc_util.a "${pkgdir}"${MINGW_PREFIX}/lib/
+  cp ./glslc/libglslc.a "${pkgdir}"${MINGW_PREFIX}/lib/
+  
   install -Dm644 "${srcdir}"/${_realname}-${pkgver}/LICENSE \
     "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 

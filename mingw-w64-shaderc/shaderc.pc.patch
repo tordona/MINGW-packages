@@ -1,0 +1,8 @@
+--- @BUILDPATH@/shaderc.pc	2025-10-17 15:30:51 -0400
++++ @BUILDPATH@/shaderc.pc.mod	2025-10-17 15:55:30 -0400
+@@ -9,4 +9,5 @@
+ URL: https://github.com/google/shaderc
+ 
+ Libs: -L${libdir} -lshaderc_shared
++Libs.private: -lstdc++
+ Cflags: -I${includedir}
