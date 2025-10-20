@@ -1,6 +1,7 @@
 # Maintainer: Peter Budai <peterbudai at hotmail.com>
 
 _realname=opencl-icd
+_commonname="OpenCL-ICD-Loader"
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=2024.10.24
@@ -29,33 +30,54 @@ prepare() {
 }
 
 build() {
-  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
+  common_config=(
+    -G'Ninja'
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX}
+    -DCMAKE_BUILD_TYPE=Release
+    -DOPENCL_ICD_LOADER_HEADERS_DIR=${MINGW_PREFIX}/include
+    -DOPENCL_ICD_LOADER_BUILD_TESTING=OFF
+    -DBUILD_TESTING=OFF
+  )
 
-  declare -a extra_config
-  if check_option "debug" "n"; then
-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
-  else
-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
-  fi
+  msg2 "Building shared library"
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     ${MINGW_PREFIX}/bin/cmake \
-      -G'Ninja' \
-      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-      "${extra_config[@]}" \
+      "${common_config[@]}" \
       -DBUILD_SHARED_LIBS=ON \
-      -DOPENCL_ICD_LOADER_DISABLE_OPENCLON12=ON \
-      -DOPENCL_ICD_LOADER_HEADERS_DIR=${MINGW_PREFIX}/include \
-      -DBUILD_TESTING=OFF \
-      ../OpenCL-ICD-Loader-${pkgver}
+      -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS=ON \
+      ../${_commonname}-${pkgver}
 
-  ${MINGW_PREFIX}/bin/cmake --build .
+  cmake --build .
+  
+  msg2 "Building static library"
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      "${common_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS=OFF \
+      ../${_commonname}-${pkgver}
+
+  cmake --build .
 }
 
 package() {
-  cd "${srcdir}"/build-${MSYSTEM}
-  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+  msg2 "Installing shared library"
+  cd "${srcdir}"/build-${MSYSTEM}-shared
+  DESTDIR="${pkgdir}" cmake --install .
+  
+  msg2 "Installing static library"
+  cd "${srcdir}"/build-${MSYSTEM}-static
+  DESTDIR="${pkgdir}" cmake --install .
 
-  install -Dm644 "${srcdir}"/OpenCL-ICD-Loader-${pkgver}/LICENSE \
+  mv "${pkgdir}"${MINGW_PREFIX}/bin/OpenCL.dll "${pkgdir}"${MINGW_PREFIX}/bin/libOpenCL.dll
+  mv "${pkgdir}"${MINGW_PREFIX}/lib/OpenCL.a "${pkgdir}"${MINGW_PREFIX}/lib/libOpenCL.a
+
+  echo "Libs.private: -lole32 -lshlwapi -lcfgmgr32" >> "${pkgdir}"${MINGW_PREFIX}/lib/pkgconfig/OpenCL.pc
+
+  install -Dm644 "${srcdir}"/${_commonname}-${pkgver}/LICENSE \
     "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }
