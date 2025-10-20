@@ -28,60 +28,72 @@ source=(${url}/-/archive/v${pkgver}/${_realname}-v${pkgver}.tar.gz
         "0001-add-cflags-private.patch")
 sha256sums=('4efe1c8d4da3c61295eb5fdfa50e6037409d8425eb3c15dd86788679c4ce59ee'
             'bda9bed8b8fff7e69fe750b6f2caafde67f63343d05698a81fb1f7b27ac4cca3')
+use_libdovi=true
 
 build() {
-  mkdir -p "${srcdir}"/build-shared-${MSYSTEM} && cd "${srcdir}"/build-shared-${MSYSTEM}
+  common_config=(
+      --prefix="${MINGW_PREFIX}"
+      --buildtype=release
+      -Ddemos=false
+      -Dtests=false
+      -Dd3d11=enabled
+      -Dlcms=enabled
+      -Dvulkan=enabled
+      -Dbench=false
+      -Dfuzz=false
+      -Dglslang=disabled
+      -Dvk-proc-addr=disabled
+      -Dvulkan-registry="${MINGW_PREFIX}"/share/vulkan/registry/vk.xml
+  )
+ 
+   if [[ "${use_libdovi}" == true ]]; then
+    common_config+=(
+      -Dlibdovi=enabled
+    )
+  else
+    common_config+=(
+      -Dlibdovi=disabled
+    )
+  fi
+ 
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup                   \
-      --prefix="${MINGW_PREFIX}"  \
-      --buildtype plain           \
-      -Ddemos=false               \
-      -Dtests=true                \
-      -Dd3d11=enabled             \
-      -Dlcms=enabled              \
-      -Dlibdovi=enabled           \
-      -Dshaderc=enabled           \
-      -Dvulkan=enabled            \
+      "${common_config[@]}"       \
+      -Dshaderc=disabled          \
+      --default-library=shared    \
       "../${_realname}-v${pkgver}"
 
   meson compile
 
-  mkdir -p "${srcdir}"/build-static-${MSYSTEM} && cd "${srcdir}"/build-static-${MSYSTEM}
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup                   \
-      --prefix="${MINGW_PREFIX}"  \
-      --buildtype plain           \
-      -Ddemos=false               \
-      -Dtests=false               \
-      -Dd3d11=enabled             \
-      -Dlcms=enabled              \
-      -Dlibdovi=enabled           \
+      "${common_config[@]}"       \
       -Dshaderc=enabled           \
-      -Dvulkan=enabled            \
       --default-library=static    \
-      --prefer-static             \
       "../${_realname}-v${pkgver}"
 
   meson compile
 }
 
 check() {
-  cd "${srcdir}"/build-shared-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}-static
 
   meson test
 }
 
 package() {
-  cd "${srcdir}"/build-static-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}-shared
   DESTDIR="${pkgdir}" meson install
 
-  cd "${srcdir}"/build-shared-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}-static
   DESTDIR="${pkgdir}" meson install
 
-  cd "${pkgdir}${MINGW_PREFIX}"
-  patch -p0 -i "${srcdir}"/0001-add-cflags-private.patch
+  sed -i "s/spirv\-cross\-c\-shared/spirv\-cross-c/g" "${pkgdir}/${MSYSTEM}"/lib/pkgconfig/${_realname}.pc
+  sed -i "/\-lversion/aLibs.private: \-lstdc++" "${pkgdir}/${MSYSTEM}"/lib/pkgconfig/${_realname}.pc
 
   install -Dm644 "${srcdir}/${_realname}-v${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }
