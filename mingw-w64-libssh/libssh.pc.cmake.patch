@@ -1,0 +1,20 @@
+--- @PACKAGE@/libssh.pc.cmake
++++ @PACKAGE@/libssh.pc.cmake.patched
+@@ -1,10 +1,14 @@
+ prefix=@CMAKE_INSTALL_PREFIX@
+ exec_prefix=${prefix}
+-libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+-includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
++libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
++includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+ 
+ Name: @PROJECT_NAME@
+ Description: The SSH Library
+ Version: @PROJECT_VERSION@
+-Libs: -L${libdir} -lssh
++Libs: -L${libdir} -lssh -lssh2
++Libs.private: -liphlpapi -lws2_32
+ Cflags: -I${includedir}
++Cflags.private: -DLIBSSH_STATIC
++Requires.private: libcrypto libssl zlib
++
