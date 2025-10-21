@@ -4,6 +4,7 @@
 _with_harfbuzz="yes"
 
 _realname=freetype
+_common_name="freetype2"
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=2.14.1
@@ -57,36 +58,43 @@ prepare() {
 }
 
 build() {
-  declare -a extra_config
-  if check_option "debug" "n"; then
-    extra_config+=("--buildtype=release")
-  else
-    extra_config+=("--buildtype=debug")
-  fi
+  common_config=(
+    --prefix="${MINGW_PREFIX}"
+    --buildtype=release
+    --wrap-mode=nodownload
+    --auto-features=disabled
+    -Dbrotli=enabled
+    -Dpng=enabled
+    -Dbzip2=enabled
+    -Dmmap=enabled
+    -Dtests=disabled
+    -Dzlib=enabled
+    -Derror_strings=false
+  )
 
-  if [ "${_with_harfbuzz}" != "yes" ]; then
-    extra_config+=("-Dharfbuzz=disabled")
+  if [[ "${_with_harfbuzz}" == "yes" ]]; then
+    common_config+=(
+      -Dharfbuzz=enabled
+    )
+  else 
+    common_config+=(
+      -Dharfbuzz=disabled
+    )
   fi
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup \
-      --prefix="${MINGW_PREFIX}" \
-      --wrap-mode=nodownload \
-      --auto-features=enabled \
       --default-library=shared \
-      "${extra_config[@]}" \
-      "build-${MSYSTEM}" \
+      "${common_config[@]}" \
+      "build-${MSYSTEM}-shared" \
       "${_realname}-${pkgver}"
 
-  meson compile -C "build-${MSYSTEM}"
+  meson compile -C "build-${MSYSTEM}-shared"
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup \
-      --prefix="${MINGW_PREFIX}" \
-      --wrap-mode=nodownload \
-      --auto-features=enabled \
       --default-library=static \
-      "${extra_config[@]}" \
+      "${common_config[@]}" \
       "build-${MSYSTEM}-static" \
       "${_realname}-${pkgver}"
 
@@ -94,8 +102,10 @@ build() {
 }
 
 package () {
+  DESTDIR="${pkgdir}" meson install -C "build-${MSYSTEM}-shared"
   DESTDIR="${pkgdir}" meson install -C "build-${MSYSTEM}-static"
-  DESTDIR="${pkgdir}" meson install -C "build-${MSYSTEM}"
+
+  sed -i "/\-lfreetype/aLibs.private: \-lstdc++" "${pkgdir}/${MSYSTEM}"/lib/pkgconfig/${_common_name}.pc
 
   # Licenses
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/docs/GPLv2.TXT"   "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/GPLv2.TXT"
