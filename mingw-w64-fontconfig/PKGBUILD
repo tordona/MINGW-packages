@@ -20,7 +20,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-gperf")
 depends=("${MINGW_PACKAGE_PREFIX}-cc-libs"
          "${MINGW_PACKAGE_PREFIX}-expat"
-         "${MINGW_PACKAGE_PREFIX}-freetype")
+         "${MINGW_PACKAGE_PREFIX}-freetype"
+         "${MINGW_PACKAGE_PREFIX}-iconv")
 install=${_realname}-${MSYSTEM}.install
 source=("https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/${pkgver}/fontconfig-${pkgver}.tar.gz"
         0011-conf-copy-instead-of-symlink.patch
@@ -36,58 +37,56 @@ prepare() {
 }
 
 build() {
-  mkdir -p "build-${MSYSTEM}-static" && cd "build-${MSYSTEM}-static"
+  common_config=(
+      --prefix="${MINGW_PREFIX}"
+      --wrap-mode=nodownload
+      --auto-features=enabled
+      -Ddoc=disabled
+      -Ddoc-man=disabled
+      -Ddoc-txt=disabled
+      -Ddoc-pdf=disabled
+      -Ddoc-html=disabled
+      -Dcache-build=disabled
+      -Diconv=enabled
+      -Dtests=disabled
+  )
 
-  MSYS2_ARG_CONV_EXCL="--prefix=" \
-    meson setup \
-      --default-library=static \
-      --prefix="${MINGW_PREFIX}" \
-      --wrap-mode=nodownload \
-      --auto-features=enabled \
-      --buildtype=plain \
-      -Ddoc-man=disabled \
-      -Ddoc-txt=disabled \
-      -Ddoc-pdf=disabled \
-      -Ddoc-html=disabled \
-      -Dcache-build=disabled \
-      ../"${_realname}-${pkgver}"
-
-  meson compile
-
-  cd ..
   mkdir -p "build-${MSYSTEM}-shared" && cd "build-${MSYSTEM}-shared"
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup \
       --default-library=shared \
-      --prefix="${MINGW_PREFIX}" \
-      --wrap-mode=nodownload \
-      --auto-features=enabled \
-      --buildtype=plain \
-      -Ddoc-man=disabled \
-      -Ddoc-txt=disabled \
-      -Ddoc-pdf=disabled \
-      -Ddoc-html=disabled \
-      -Dcache-build=disabled \
+      "${common_config[@]}" \
+      ../"${_realname}-${pkgver}"
+
+  meson compile
+
+  cd ..
+  mkdir -p "build-${MSYSTEM}-static" && cd "build-${MSYSTEM}-static"
+
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --default-library=static \
+      "${common_config[@]}" \
       ../"${_realname}-${pkgver}"
 
   meson compile
 }
 
 package() {
-  cd "${srcdir}/build-${MSYSTEM}-static"
+  cd "${srcdir}/build-${MSYSTEM}-shared"
   DESTDIR="${pkgdir}" meson install
 
-  cd "${srcdir}/build-${MSYSTEM}-shared"
+  cd "${srcdir}/build-${MSYSTEM}-static"
   DESTDIR="${pkgdir}" meson install
 
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
 
-  sed -i "s|${MINGW_PREFIX}/etc$|\${prefix}/etc|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
-  sed -i "s|${MINGW_PREFIX}/etc/|\${sysconfdir}/|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
-  sed -i "s|${MINGW_PREFIX}/var|\${prefix}/var|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
+  sed -i "s|${MINGW_PREFIX}/etc$|\${prefix}/etc|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/${_realname}.pc
+  sed -i "s|${MINGW_PREFIX}/etc/|\${sysconfdir}/|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/${_realname}.pc
+  sed -i "s|${MINGW_PREFIX}/var|\${prefix}/var|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/${_realname}.pc
 
-  for hook in fontconfig; do
+  for hook in ${_realname}; do
     local hook_path="${srcdir}/${MINGW_PACKAGE_PREFIX}-${hook}.hook";
     cp "${srcdir}/${hook}.hook.in" "${hook_path}"
     sed -s "s|@MINGW_HOOK_TARGET_PREFIX@|${MINGW_PREFIX:1}|g" -i "${hook_path}"
