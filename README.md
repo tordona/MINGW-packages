@@ -1,16 +1,13 @@
-
 # MINGW-packages
+This repository contains modified package scripts for MinGW-w64 targets to build under MSYS2. These are specific to helping build statically linked [FFmpeg](https://www.ffmpeg.org/) binaries under MSYS2. 
 
-This repository contains modified package scripts for MinGW-w64 targets to build under MSYS2. These are specific to helping build static [FFMpeg](https://www.ffmpeg.org/) binaries under MSYS2. 
-
-  
-## Compiling FFMpeg
-Assuming you have a properly installed MSYS2 environment and build tools, configure FFMpeg to your perferences.
+## Compiling FFmpeg
+Assuming you have a properly installed Windows MSYS2 environment and build tools, configure FFmpeg to your perferences.
 
 ```
-./configure --extra-libs='-static -lpthread' --pkg-config-flags='--static' --arch=aarch64 --enable-gpl --enable-version3 \
---enable-static --disable-shared --disable-debug --disable-w32threads --disable-autodetect --enable-libssh
+./configure --extra-libs='-static -lpthread' --pkg-config-flags='--static' --arch=aarch64 --enable-gpl --enable-version3 --enable-static --disable-shared --disable-debug --disable-w32threads --disable-autodetect --enable-libssh
 ```
+
 ## Errors
 **ERROR: libname_xyz not found using pkg-config**
 
@@ -31,5 +28,5 @@ Assuming you have a properly installed MSYS2 environment and build tools, config
     pacman -U ${package-name}*.pkg.tar.xz
  ```
 
-## Windows ARM64 FFMpeg Binaries
+## Windows ARM64 FFmpeg Binaries
 http://github.com/tordona/ffmpeg-win-arm64
