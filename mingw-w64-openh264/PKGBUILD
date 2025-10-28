@@ -25,9 +25,11 @@ depends=("${MINGW_PACKAGE_PREFIX}-cc-libs")
 source=(
   "https://github.com/cisco/openh264/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
   "0001-openh264-install-executables.patch"
+  "openh264.pc.patch"
 )
 sha256sums=('558544ad358283a7ab2930d69a9ceddf913f4a51ee9bf1bfb9e377322af81a69'
-            '0b1246577b257560b6fae782dd93eabeedcb8d9c87c20d6d7732b79ba14c38d6')
+            '0b1246577b257560b6fae782dd93eabeedcb8d9c87c20d6d7732b79ba14c38d6'
+            '36eae512702da94cd814299d6a60307751413a8eb2686470a5776008291f11bd')
 
 prepare() {
   cd "${_realname}-${pkgver}"
@@ -35,19 +37,6 @@ prepare() {
 }
 
 build() {
-  MSYS2_ARG_CONV_EXCL="--prefix=" \
-    ${MINGW_PREFIX}/bin/meson.exe setup \
-      --prefix="${MINGW_PREFIX}" \
-      --default-library=static \
-      --wrap-mode=nodownload \
-      --auto-features=enabled \
-      --buildtype=plain \
-      -Dtests=disabled \
-      build-${MSYSTEM}-static \
-      ${_realname}-${pkgver}
-
-  ${MINGW_PREFIX}/bin/meson.exe compile -C build-${MSYSTEM}-static
-
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     ${MINGW_PREFIX}/bin/meson.exe setup \
       --prefix="${MINGW_PREFIX}" \
@@ -60,11 +49,28 @@ build() {
       ${_realname}-${pkgver}
 
   ${MINGW_PREFIX}/bin/meson.exe compile -C build-${MSYSTEM}-shared
+
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    ${MINGW_PREFIX}/bin/meson.exe setup \
+      --prefix="${MINGW_PREFIX}" \
+      --default-library=static \
+      --wrap-mode=nodownload \
+      --auto-features=enabled \
+      --buildtype=plain \
+      -Dtests=disabled \
+      build-${MSYSTEM}-static \
+      ${_realname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/meson.exe compile -C build-${MSYSTEM}-static
 }
 
 package() {
-  ${MINGW_PREFIX}/bin/meson.exe install -C build-${MSYSTEM}-static --destdir "${pkgdir}"
+  sed -i "s/@MSYSTEM_BUILD@/build-${MSYSTEM}-static/g" "openh264.pc.patch"
+  patch -Np0 -i "${srcdir}/openh264.pc.patch"
+
   ${MINGW_PREFIX}/bin/meson.exe install -C build-${MSYSTEM}-shared --destdir "${pkgdir}"
+  ${MINGW_PREFIX}/bin/meson.exe install -C build-${MSYSTEM}-static --destdir "${pkgdir}"
+
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" \
     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }
