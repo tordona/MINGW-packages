@@ -19,6 +19,7 @@ source=("https://github.com/ultravideo/${_realname}/archive/v${pkgver}/${_realna
         "001-clang-pthread-fix.patch")
 sha256sums=('ddd0038696631ca5368d8e40efee36d2bbb805854b9b1dda8b12ea9b397ea951'
             '465a75a3b28e921b60e6558da744d62eb073fe774745d33a8f8de1a6da2a0015')
+options=('libtool' 'staticlibs')
 
 prepare(){
   cd ${_realname}-${pkgver}
@@ -37,6 +38,10 @@ build() {
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
     --enable-largefile \
+    --enable-static \
+    --enable-shared \
+    --enable-pic \
+    --enable-year2038 \
     --with-cryptopp
 
   make
@@ -48,6 +53,8 @@ package() {
 
   # fix .pc file
   sed -s "s|$(cygpath -m ${MINGW_PREFIX})|${MINGW_PREFIX}|g" -i "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/${_realname}.pc"
+  sed -s "s|-lcryptopp|-lcryptopp -lstdc++|g" -i "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/${_realname}.pc"
+  echo "Cflags.private: -DKVZ_STATIC_LIB" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/${_realname}.pc"
 
   install -Dm644 LICENSE "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }
