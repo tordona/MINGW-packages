@@ -4,7 +4,7 @@
 _realname=harfbuzz
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
-         $([[ ${CARCH} == i686 ]] || echo \
+         $([[ ${CARCH} == i686 || ${CARCH} == aarch64 ]] || echo \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-cairo" \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-icu" \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-utils" \
@@ -30,7 +30,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-pkgconf"
              "${MINGW_PACKAGE_PREFIX}-python"
              "${MINGW_PACKAGE_PREFIX}-gobject-introspection"
-             $([[ ${CARCH} == i686 ]] || echo \
+             $([[ ${CARCH} == i686 || ${CARCH} == aarch64 ]] || echo \
                "${MINGW_PACKAGE_PREFIX}-gtk-doc" \
                "${MINGW_PACKAGE_PREFIX}-icu" \
                "${MINGW_PACKAGE_PREFIX}-cairo" \
@@ -65,7 +65,7 @@ build() {
   )
 
   declare -a _extra_config
-  if [[ ${CARCH} != i686 ]]; then
+  if [[ ${CARCH} != "i686" && ${CARCH} != "aarch64" ]]; then
     _extra_config+=(
       "-Dchafa=enabled"
       "-Dcairo=enabled"
@@ -77,9 +77,16 @@ build() {
     _extra_config+=(
       "-Dchafa=disabled"
       "-Dcairo=disabled"
+      "-Dglib=disabled"
       "-Dicu=disabled"
       "-Ddocs=disabled"
+      "-Ddoc_tests=false"
       "-Dutilities=disabled"
+      "-Dintrospection=disabled"
+      "-Dgdi=enabled"
+      "-Dtests=disabled"
+      "-Dgobject=enabled"
+      "-Ddirectwrite=enabled"
     )
   fi
 
@@ -87,20 +94,14 @@ build() {
   CXXFLAGS+=" ${_static_flags[@]}" \
   MSYS2_ARG_CONV_EXCL="--prefix=" \
   ${MINGW_PREFIX}/bin/meson setup \
+    "${_extra_config[@]}" \
     --prefix="${MINGW_PREFIX}" \
     --buildtype plain \
     --wrap-mode=nofallback \
     --default-library=static \
     -Dauto_features=enabled \
-    -Dintrospection=disabled \
-    -Dgobject=enabled \
-    -Dicu=enabled \
-    -Dgdi=enabled \
+    -Dfreetype=enabled \
     -Dgraphite=enabled \
-    -Ddirectwrite=enabled \
-    -Dtests=disabled \
-    -Ddocs=disabled \
-    "${_extra_config[@]}" \
     "build-${MSYSTEM}-static" \
     "${_realname}-${pkgver}"
 
@@ -108,18 +109,14 @@ build() {
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
   ${MINGW_PREFIX}/bin/meson setup \
+    "${_extra_config[@]}" \
     --prefix="${MINGW_PREFIX}" \
     --buildtype plain \
     --wrap-mode=nofallback \
     --default-library=shared \
     -Dauto_features=enabled \
-    -Dintrospection=enabled \
-    -Dgobject=enabled \
-    -Dgdi=enabled \
+    -Dfreetype=disabled \
     -Dgraphite2=enabled \
-    -Ddirectwrite=enabled \
-    -Dtests=disabled \
-    "${_extra_config[@]}" \
     "build-${MSYSTEM}-shared" \
     "${_realname}-${pkgver}"
 
@@ -142,7 +139,7 @@ package_harfbuzz() {
 
   ${MINGW_PREFIX}/bin/meson install -C "build-${MSYSTEM}-static" --destdir "${pkgdir}"
 
-  if [[ ${CARCH} != i686 ]]; then
+  if [[ ${CARCH} != "i686" && ${CARCH} != "aarch64" ]]; then
 
   mkdir -p dest-docs${MINGW_PREFIX}/share
   mv "${pkgdir}"${MINGW_PREFIX}/share/gtk-doc dest-docs${MINGW_PREFIX}/share/gtk-doc
@@ -173,37 +170,45 @@ package_harfbuzz() {
 }
 
 package_harfbuzz-cairo() {
-  pkgdesc+=" - Cairo integration (mingw-w64)"
-  depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
-           "${MINGW_PACKAGE_PREFIX}-cairo")
+  if [ -d "dest-cairo" ]; then
+    pkgdesc+=" - Cairo integration (mingw-w64)"
+    depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
+             "${MINGW_PACKAGE_PREFIX}-cairo")
 
-  mv dest-cairo/* "${pkgdir}"
+    mv dest-cairo/* "${pkgdir}"
+  fi
 }
 
 package_harfbuzz-icu() {
-  pkgdesc+=" - ICU integration (mingw-w64)"
-  depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
-           "${MINGW_PACKAGE_PREFIX}-icu")
+  if [ -d "dest-icu" ]; then
+    pkgdesc+=" - ICU integration (mingw-w64)"
+    depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
+             "${MINGW_PACKAGE_PREFIX}-icu")
 
-  mv dest-icu/* "${pkgdir}"
+    mv dest-icu/* "${pkgdir}"
+  fi
 }
 
 package_harfbuzz-utils() {
-  pkgdesc+=" - Utilities (mingw-w64)"
-  depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
-           "${MINGW_PACKAGE_PREFIX}-harfbuzz-cairo"
-           "${MINGW_PACKAGE_PREFIX}-cairo"
-           $([[ ${CARCH} == i686 ]] || echo "${MINGW_PACKAGE_PREFIX}-chafa"))
+  if [ -d "dest-utils" ]; then
+    pkgdesc+=" - Utilities (mingw-w64)"
+    depends=("${MINGW_PACKAGE_PREFIX}-harfbuzz"
+             "${MINGW_PACKAGE_PREFIX}-harfbuzz-cairo"
+             "${MINGW_PACKAGE_PREFIX}-cairo"
+             $([[ ${CARCH} == i686 ]] || echo "${MINGW_PACKAGE_PREFIX}-chafa"))
 
-  mv dest-utils/* "${pkgdir}"
+    mv dest-utils/* "${pkgdir}"
+  fi
 }
 
 package_harfbuzz-docs() {
-  pkgdesc+=" - Documentation (mingw-w64)"
-  depends=()
-  optdepends=()
+  if [ -d "dest-docs" ]; then
+    pkgdesc+=" - Documentation (mingw-w64)"
+    depends=()
+    optdepends=()
 
-  mv dest-docs/* "${pkgdir}"
+    mv dest-docs/* "${pkgdir}"
+  fi
 }
 
 # template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
