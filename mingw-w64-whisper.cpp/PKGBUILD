@@ -24,45 +24,80 @@ makedepends=(
 )
 #_commit=44fa2f647cf2a6953493b21ab83b50d5f5dbc483
 #source=("git+https://github.com/ggml-org/whisper.cpp#commit=${_commit}")
-source=("https://github.com/ggml-org/whisper.cpp/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('c006a5e472ee41e7a733d0bf7326e339c8b281d3a91a1c8a35468fa0a051940f')
+source=("https://github.com/ggml-org/whisper.cpp/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "whisper.pc.in.patch")
+sha256sums=('c006a5e472ee41e7a733d0bf7326e339c8b281d3a91a1c8a35468fa0a051940f'
+            '96efa2431d71114f5928ab04c6d048a8814f5dd54713914e8e98adcac25ac844')
 
 # pkgver() {
 #   cd "${_realname}"
 #   git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
 # }
 
-build() {
-  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+prepare() {
+  sed -i "s/@PACKAGE@/${_realname}-${pkgver}/g" "whisper.pc.in.patch"
 
-  declare -a extra_config
-  if check_option "debug" "n"; then
-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
-  else
-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
-  fi
+  cd "${srcdir}"/${_realname}-${pkgver}
+  patch -p1 -i "${srcdir}"/whisper.pc.in.patch
+}
+
+build() {
+  common_config=(
+    -GNinja
+    -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}"
+    -DCMAKE_BUILD_TYPE=Release
+    -DWHISPER_USE_SYSTEM_GGML=OFF
+    -DWHISPER_CURL=ON
+    -DWHISPER_SDL2=ON
+    -DWHISPER_BUILD_EXAMPLES=OFF
+    -DWHISPER_BUILD_TESTS=OFF
+    -DWHISPER_BUILD_SERVER=OFF
+    -DWHISPER_ALL_WARNINGS=OFF
+    -DGGML_OPENCL=ON
+    -DGGML_VULKAN=ON
+    -DGGML_CCACHE=OFF
+    -DGGML_NATIVE=OFF
+    -DGGML_SSE42=OFF
+    -DGGML_AVX=OFF
+    -DGGML_F16C=OFF
+    -DGGML_AVX2=OFF
+    -DGGML_BMI2=OFF
+    -DGGML_FMA=OFF
+  )
+
+  mkdir -p "${srcdir}/build-${MSYSTEM}-shared" && cd "${srcdir}/build-${MSYSTEM}-shared"
 
   LDFLAGS+=" -Wl,--export-all-symbols" \
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     cmake \
-      -GNinja \
-      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      "${common_config[@]}" \
       -DBUILD_SHARED_LIBS=ON \
-      -DCMAKE_DLL_NAME_WITH_SOVERSION=ON \
-      -DWHISPER_USE_SYSTEM_GGML=ON \
-      -DWHISPER_CURL=ON \
-      -DWHISPER_SDL2=ON \
-      -DWHISPER_BUILD_EXAMPLES=ON \
-      -DWHISPER_BUILD_TESTS=OFF \
-      -DWHISPER_ALL_WARNINGS=OFF \
-      "${extra_config[@]}" \
+      ../${_realname}-${pkgver}
+
+  cmake --build .
+
+  mkdir -p "${srcdir}/build-${MSYSTEM}-static" && cd "${srcdir}/build-${MSYSTEM}-static"
+
+  LDFLAGS+=" -Wl,--export-all-symbols" \
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake \
+      "${common_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
       ../${_realname}-${pkgver}
 
   cmake --build .
 }
 
 package() {
-  cd "${srcdir}/build-${MSYSTEM}"
+  cd "${srcdir}/build-${MSYSTEM}-shared"
+
+  DESTDIR="${pkgdir}" cmake --install .
+
+  for ggml in "${pkgdir}${MINGW_PREFIX}"/bin/ggml*.dll; do
+     mv "${ggml}" "$(dirname "${ggml}")/lib$(basename "${ggml}")"
+  done
+
+  cd "${srcdir}/build-${MSYSTEM}-static"
 
   DESTDIR="${pkgdir}" cmake --install .
 
@@ -73,6 +108,10 @@ package() {
     if [[ -e $i && ! ("$filename" =~ ^whisper) ]]; then
       mv "${i}" "${pkgdir}${MINGW_PREFIX}/bin/whisper-${filename}"
     fi
+  done
+
+  for ggml in "${pkgdir}${MINGW_PREFIX}"/lib/ggml*.a; do
+    mv "${ggml}" "$(dirname "${ggml}")/lib$(basename "${ggml}")"
   done
 
   install -Dm755 "${srcdir}/${_realname}-${pkgver}/models/download-ggml-model.sh" \
