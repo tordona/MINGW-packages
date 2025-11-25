@@ -42,6 +42,8 @@ prepare() {
 }
 
 build() {
+  [[ ${CARCH} == "aarch64" ]] && cpu_feature="OFF" || cpu_feature="ON"
+ 
   common_config=(
     -GNinja
     -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}"
@@ -57,12 +59,12 @@ build() {
     -DGGML_VULKAN=ON
     -DGGML_CCACHE=OFF
     -DGGML_NATIVE=OFF
-    -DGGML_SSE42=OFF
-    -DGGML_AVX=OFF
-    -DGGML_F16C=OFF
-    -DGGML_AVX2=OFF
-    -DGGML_BMI2=OFF
-    -DGGML_FMA=OFF
+    -DGGML_SSE42=$cpu_feature
+    -DGGML_AVX=$cpu_feature
+    -DGGML_F16C=$cpu_feature
+    -DGGML_AVX2=$cpu_feature
+    -DGGML_BMI2=$cpu_feature
+    -DGGML_FMA=$cpu_feature
   )
 
   mkdir -p "${srcdir}/build-${MSYSTEM}-shared" && cd "${srcdir}/build-${MSYSTEM}-shared"
