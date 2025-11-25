@@ -4,7 +4,7 @@
 _realname=harfbuzz
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
-         $([[ ${CARCH} == i686 || ${CARCH} == aarch64 ]] || echo \
+         $([[ ${CARCH} == i686 ]] || echo \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-cairo" \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-icu" \
            "${MINGW_PACKAGE_PREFIX}-${_realname}-utils" \
@@ -30,7 +30,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-pkgconf"
              "${MINGW_PACKAGE_PREFIX}-python"
              "${MINGW_PACKAGE_PREFIX}-gobject-introspection"
-             $([[ ${CARCH} == i686 || ${CARCH} == aarch64 ]] || echo \
+             $([[ ${CARCH} == i686 ]] || echo \
                "${MINGW_PACKAGE_PREFIX}-gtk-doc" \
                "${MINGW_PACKAGE_PREFIX}-icu" \
                "${MINGW_PACKAGE_PREFIX}-cairo" \
@@ -65,13 +65,19 @@ build() {
   )
 
   declare -a _extra_config
-  if [[ ${CARCH} != "i686" && ${CARCH} != "aarch64" ]]; then
+  if [[ ${CARCH} != "i686" ]]; then
     _extra_config+=(
       "-Dchafa=enabled"
       "-Dcairo=enabled"
       "-Dicu=enabled"
       "-Ddocs=enabled"
+      "-Ddoc_tests=false"
       "-Dutilities=enabled"
+      "-Dintrospection=disabled"
+      "-Dgdi=enabled"
+      "-Dtests=disabled"
+      "-Dgobject=enabled"
+      "-Ddirectwrite=enabled"
     )
   else
     _extra_config+=(
@@ -139,7 +145,7 @@ package_harfbuzz() {
 
   ${MINGW_PREFIX}/bin/meson install -C "build-${MSYSTEM}-static" --destdir "${pkgdir}"
 
-  if [[ ${CARCH} != "i686" && ${CARCH} != "aarch64" ]]; then
+  if [[ ${CARCH} != "i686" ]]; then
 
   mkdir -p dest-docs${MINGW_PREFIX}/share
   mv "${pkgdir}"${MINGW_PREFIX}/share/gtk-doc dest-docs${MINGW_PREFIX}/share/gtk-doc
