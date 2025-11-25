@@ -1,0 +1,11 @@
+--- @PACKAGE@/cmake/whisper.pc.in
++++ @PACKAGE@/cmake/whisper.pc.in.mod
+@@ -6,5 +6,7 @@
+ Name: whisper
+ Description: Port of OpenAI's Whisper model in C/C++
+ Version: @PROJECT_VERSION@
+-Libs: -L${libdir} -lggml  -lggml-base -lwhisper
++Libs: -L${libdir} -lwhisper
++Libs.private: -lggml -lggml-base -lggml-cpu -lggml-vulkan -lggml-opencl -lomp -lstdc++
+ Cflags: -I${includedir}
++Requires: vulkan OpenCL
