@@ -24,7 +24,7 @@ source=(""vid.stab-${pkgver}::git+https://github.com/georgmartius/vid.stab.git#c
 sha256sums=('SKIP'
             '902d237a2cbdbec032379a2b23ba3abd0bd4f4455169c7c4994edbaf5137e1f5'
             'c11232d1dad550363f1d69137e2ddfb7f159c8ba86040e65dc376bd757d58ca7'
-            '352574ed39eaa8e2b4a5ef8b38f6e52f9f649539cd5c4f29504a8aa1defb8cc9')
+            '55c90a21fcb227ed51b65189b7a33327ed4902dec389765d9d2502562d3cf81c')
 options=('libtool' 'staticlibs')
 
 # Helper macros to help make tasks easier #

@@ -18,7 +18,7 @@ source=("https://github.com/nkoriyama/aribb24/archive/v${pkgver}/${_realname}-${
         "configure.ac.patch")
 sha256sums=('f61560738926e57f9173510389634d8c06cabedfa857db4b28fb7704707ff128'
             '2832363ed204051fbc34c34da0fbac993e7bc0213de3a34baf37b2622da87657'
-            'a483ecb64cc8995129699f14c1238221148338ae51466de12724c7c87f435d9b')
+            'f7cd3cff12ce4bfd90f43a132da40264d6618f25b229757082fedcc33f32d380')
 options=('libtool' 'staticlibs')
 
 prepare() {

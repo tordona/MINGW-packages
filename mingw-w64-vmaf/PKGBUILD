@@ -19,7 +19,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
 source=("https://github.com/Netflix/${_realname}/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
         "libvmaf.pc.patch")
 sha256sums=('7178c4833639e6b989ecae73131d02f70735fdb3fc2c7d84bc36c9c3461d93b1'
-'d29e4d59480840898845b82d8c5dc15cf3db13e0ea2d2edc7d31940d829f762a')
+'32106ffb14b3ede5cc68ed8c8ca70bdf7c3eeb1386dc185f9ab983b2729e2f58')
 
 build() {
   common_config=(

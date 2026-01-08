@@ -43,7 +43,7 @@ source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbu
         "harfbuzz.pc.patch")
 sha256sums=('8660ebd3c27d9407fc8433b5d172bafba5f0317cb0bb4339f28e5370c93d42b7'
             '26b37a1ca9872973905ecb96bcbe3f054472252320956faa74428206900d360e'
-            '55d17f0a9a05134dcbcae728bb6fef2bc58d887564e6f004a645f44617dab4cd')
+            '47f51854e6f70b56dad94980bd22db9a6d592f4932f5d897f39f0d4c54b98d39')
 noextract=("harfbuzz-${pkgver}.tar.xz")
 
 prepare() {

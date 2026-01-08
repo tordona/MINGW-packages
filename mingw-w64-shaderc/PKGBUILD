@@ -29,9 +29,9 @@ source=("https://github.com/google/shaderc/archive/v${pkgver}/${_realname}-${pkg
         "shaderc_static.pc.patch")
 sha256sums=('fca5041b1fdea6daba167b63e04e55e5059fab40828342126169336643445447'
             'af880b221603e2b5c34dd306feeb4fa9af5803ebc841d64ab8e4be0e7455a6ba'
-            '2390b6f5970119f65fe1bd93376703a2df285be644d0c1106bb4bbea1108365b'
-            '768be556f688459a0bc07f27fcb14c61b9990f291fc14a9ebbe43a0f72d06466'
-            '04fde160dd6f63a94d7fce1ee0a3cc9cc0a6c597923c527df4e6b35e02d28762')
+            '8265c7f6ea0f6f317847e0b9ed2fbda9027551f3f1ff3b13a14d984b8db0381b'
+            'f55282a68ee8b5ddeb60c9827d0fcffeef551c900274b4cf256c5537cb9b0e92'
+            '35f15d8837506c40f168d72db340f75a0df278ed5920b19fa39e5270f0f252fb')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
