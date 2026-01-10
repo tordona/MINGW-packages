@@ -19,8 +19,8 @@ jobs:
             mingw-w64-clang-aarch64-gcc-compat
             mingw-w64-clang-aarch64-diffutils
 
-    # - name: Run makepkg-mingw
-      # shell: msys2 {0}
-      # run: |
-        # # makepkg-mingw is used instead of standard makepkg for MinGW packages
-        # makepkg-mingw --noconfirm --skippgpcheck
+    - name: run makepkg-mingw
+      shell: msys2 {0}
+      run: |
+        # makepkg-mingw is used instead of standard makepkg for mingw packages
+        makepkg-mingw --noconfirm --skippgpcheck
