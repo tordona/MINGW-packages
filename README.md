@@ -2,7 +2,7 @@
 This repository contains modified package scripts for MinGW-w64 targets to build under MSYS2. These are specific to helping build statically linked [FFmpeg](https://www.ffmpeg.org/) binaries under MSYS2. 
 
 ## Compiling FFmpeg
-Assuming you have a properly installed Windows MSYS2 environment and build tools, configure FFmpeg to your perferences.
+Assuming you have a properly installed Windows MSYS2 environment and build tools, configure FFmpeg to your preferences.
 
 ```
 ./configure --extra-libs='-static -lpthread' --pkg-config-flags='--static' --arch=aarch64 --enable-gpl --enable-version3 --enable-static --disable-shared --disable-debug --disable-w32threads --disable-autodetect --enable-libssh
