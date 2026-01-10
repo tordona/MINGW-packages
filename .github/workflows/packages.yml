@@ -15,10 +15,11 @@ jobs:
         update: true
         install: >
             git make patch patchutils
-
+            mingw-w64-clang-aarch64-toolchain
+            mingw-w64-clang-aarch64-{gcc-compat,diffutils,gcc-compat,7zip,python,python-pip,jq}
     
-    - name: Run makepkg-mingw
-      shell: msys2 {0}
-      run: |
-        # makepkg-mingw is used instead of standard makepkg for MinGW packages
-        makepkg-mingw --noconfirm --skippgpcheck
+    # - name: Run makepkg-mingw
+      # shell: msys2 {0}
+      # run: |
+        # # makepkg-mingw is used instead of standard makepkg for MinGW packages
+        # makepkg-mingw --noconfirm --skippgpcheck
