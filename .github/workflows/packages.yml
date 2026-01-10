@@ -1,0 +1,24 @@
+name: MSYS2 PKGBUILD CI
+
+on: [push, pull_request]
+
+jobs:
+  build-pkg:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANGARM64
+        update: true
+        install: >
+            git make patch patchutils
+            mingw-w64-clang-aarch64-{toolchain,gcc-compat,diffutils,gcc-compat,7zip,python,python-pip,jq}
+    
+    - name: Run makepkg-mingw
+      shell: msys2 {0}
+      run: |
+        # makepkg-mingw is used instead of standard makepkg for MinGW packages
+        makepkg-mingw --noconfirm --skippgpcheck
