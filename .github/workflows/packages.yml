@@ -15,7 +15,7 @@ jobs:
         update: true
         install: >
             git make patch patchutils
-            mingw-w64-clang-aarch64-{toolchain,gcc-compat,diffutils,gcc-compat,7zip,python,python-pip,jq}
+
     
     - name: Run makepkg-mingw
       shell: msys2 {0}
