@@ -18,11 +18,7 @@ jobs:
             mingw-w64-clang-aarch64-toolchain
             mingw-w64-clang-aarch64-gcc-compat
             mingw-w64-clang-aarch64-diffutils
-            # mingw-w64-clang-aarch64-7zip
-            # mingw-w64-clang-aarch64-python
-            # mingw-w64-clang-aarch64-python-pip
-            # mingw-w64-clang-aarch64-jq
-    
+
     # - name: Run makepkg-mingw
       # shell: msys2 {0}
       # run: |
