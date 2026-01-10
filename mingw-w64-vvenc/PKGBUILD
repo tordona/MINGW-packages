@@ -1,0 +1,65 @@
+_realname=vvenc
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+epoch=1
+pkgver=1.13.1
+pkgrel=1
+pkgdesc="VVenC, the Fraunhofer Versatile Video Encoder"
+arch=('any')
+mingw_arch=('ucrt64' 'clang64' 'clangarm64' 'mingw64')
+url='https://github.com/fraunhoferhhi/vvenc'
+license=('spdx:BSD')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+source=("${url}/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('9d0d88319b9c200ebf428471a3f042ea7dcd868e8be096c66e19120a671a0bc8')
+
+build() { 
+  common_config=(
+    -GNinja
+    -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}"
+    -DVVENC_LIBRARY_ONLY=OFF
+    -DCMAKE_BUILD_TYPE=Release
+    -DVVENC_ENABLE_WERROR=OFF
+    -DVVENC_ENABLE_LINK_TIME_OPT=OFF
+    -DEXTRALIBS="-lstdc++"
+  )
+
+  mkdir -p "${srcdir}/build-${MSYSTEM}-shared" && cd "${srcdir}/build-${MSYSTEM}-shared"
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake \
+      "${common_config[@]}" \
+      -DBUILD_SHARED_LIBS=ON \
+      ../${_realname}-${pkgver}
+
+  cmake --build .
+
+  mkdir -p "${srcdir}/build-${MSYSTEM}-static" && cd "${srcdir}/build-${MSYSTEM}-static"
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake \
+      "${common_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
+      ../${_realname}-${pkgver}
+
+  cmake --build .
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}-shared"
+
+  DESTDIR="${pkgdir}" cmake --install .
+
+  cd "${srcdir}/build-${MSYSTEM}-static"
+
+  DESTDIR="${pkgdir}" cmake --install .
+
+  sed -i "s/\sinterface_libs\-NOTFOUND//g" "${pkgdir}/${MSYSTEM}"/lib/pkgconfig/lib${_realname}.pc
+
+  install -Dm644 "${srcdir}"/${_realname}-${pkgver}/LICENSE.txt \
+    "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
+}
