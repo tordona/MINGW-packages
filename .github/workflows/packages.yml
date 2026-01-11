@@ -3,6 +3,21 @@ name: MSYS2 PKGBUILD CI
 on: [push, pull_request]
 
 jobs:
+  detect-directory-changes:
+    name: "Detect Directory Changes"
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Detect Directory Changes
+        id: detect
+        uses: tchupp/actions-detect-directory-changes@v1
+        with:
+          included-paths: "!./.github/**"
+          if-these-paths-change-return-all-included-paths: "./.github/**"
   build-pkg:
     runs-on: windows-latest
 
@@ -15,11 +30,13 @@ jobs:
         update: true
         install: >
             git make patch patchutils
-            mingw-w64-clang-aarch64-toolchain
-            mingw-w64-clang-aarch64-gcc-compat
-            mingw-w64-clang-aarch64-diffutils
+        pacboy:
+            toolchain:a
+            gcc-compat:a
+            diffutils:a
 
-    - name: run makepkg-mingw
+    - name: run makepkg-mingw ${{ matrix.project }}
+      working-directory: ./${{ matrix.project }}
       shell: msys2 {0}
       run: |
         # makepkg-mingw is used instead of standard makepkg for mingw packages
