@@ -7,7 +7,7 @@ jobs:
     name: "Detect Directory Changes"
     runs-on: ubuntu-latest
     outputs:
-      changed: ${{ steps.detect.outputs.changed }}
+    changed: ${{ steps.detect.outputs.changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -22,6 +22,7 @@ jobs:
     runs-on: windows-latest
     needs: [detect-directory-changes]
     strategy:
+      fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
     steps:
