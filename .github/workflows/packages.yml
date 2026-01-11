@@ -11,13 +11,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Detect Directory Changes
         id: detect
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
-          if-these-paths-change-return-all-included-paths: "./.github/**"
   build-pkg:
     runs-on: windows-11-arm
     needs: [detect-directory-changes]
