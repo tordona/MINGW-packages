@@ -50,5 +50,5 @@ jobs:
       uses: actions/upload-artifact@v6
       working-directory: ./${{ matrix.project }}
       with:
-        name: ${{ msystem }}-${{ matrix.project }}
+        name: CLANGARM64-${{ matrix.project }}
         path: ./${{ matrix.project }}/*.zst
