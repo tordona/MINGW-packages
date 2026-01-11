@@ -37,10 +37,13 @@ jobs:
         pacboy:
             toolchain:a
             gcc-compat:a
+            cmake:a
             diffutils:a
 
     - name: run makepkg-mingw ${{ matrix.project }}
       working-directory: ./${{ matrix.project }}
+      with:
+        msystem: CLANGARM64
       shell: msys2 {0}
       run: |
         # makepkg-mingw on project directory: ${{ matrix.project }}
