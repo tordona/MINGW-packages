@@ -19,7 +19,7 @@ jobs:
           included-paths: "!./.github/**"
           if-these-paths-change-return-all-included-paths: "./.github/**"
   build-pkg:
-    runs-on: windows-latest
+    runs-on: windows-11-arm
     needs: [detect-directory-changes]
     strategy:
       fail-fast: false
@@ -32,18 +32,18 @@ jobs:
       with:
         msystem: CLANGARM64
         update: true
-        install: >
-            git make patch patchutils
+        install:
+            git
+            make
+            patch
+            patchutils
         pacboy:
             toolchain:a
             gcc-compat:a
             cmake:a
             diffutils:a
-
     - name: run makepkg-mingw ${{ matrix.project }}
       working-directory: ./${{ matrix.project }}
-      with:
-        msystem: CLANGARM64
       shell: msys2 {0}
       run: |
         # makepkg-mingw on project directory: ${{ matrix.project }}
