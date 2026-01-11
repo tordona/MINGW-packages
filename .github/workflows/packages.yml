@@ -46,3 +46,9 @@ jobs:
       run: |
         # makepkg-mingw on project directory: ${{ matrix.project }}
         makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
+    - name: '📤 Upload artifact: package'
+      uses: actions/upload-artifact@v6
+      working-directory: ./${{ matrix.project }}
+      with:
+        name: ${{ msystem }}-${{ matrix.project }}
+        path: ./${{ matrix.project }}/*.zst
