@@ -39,5 +39,6 @@ jobs:
       working-directory: ./${{ matrix.project }}
       shell: msys2 {0}
       run: |
-        # makepkg-mingw is used instead of standard makepkg for mingw packages
+        # makepkg-mingw is used instead of standard makepkg for mingw packages ${{ matrix.project }}
+        # ${{ matrix }}
         makepkg-mingw --noconfirm --skippgpcheck
