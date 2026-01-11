@@ -48,7 +48,6 @@ jobs:
         makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
     - name: '📤 Upload artifact: package'
       uses: actions/upload-artifact@v6
-      working-directory: ./${{ matrix.project }}
       with:
         name: CLANGARM64-${{ matrix.project }}
         path: ./${{ matrix.project }}/*.zst
