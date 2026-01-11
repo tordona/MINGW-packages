@@ -20,6 +20,7 @@ jobs:
           if-these-paths-change-return-all-included-paths: "./.github/**"
   build-pkg:
     runs-on: windows-latest
+    needs: [detect-directory-changes]
     strategy:
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
