@@ -20,7 +20,9 @@ jobs:
           if-these-paths-change-return-all-included-paths: "./.github/**"
   build-pkg:
     runs-on: windows-latest
-
+    strategy:
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
     steps:
     - uses: actions/checkout@v5
     - name: Setup MSYS2
