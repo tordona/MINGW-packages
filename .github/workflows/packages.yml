@@ -71,9 +71,22 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Get build number
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Generate dated tag name
+      id: generate_tag
       run: |
-        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
+        # Format date as YYYY-MM-DD-HHMMSS (e.g., release-2025-01-13-165900)
+        TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"
+        echo "Generated tag name: $TAG_NAME"
+        # Set the tag name as an output variable for subsequent steps
+        echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
+    - name: Create and push the new tag
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ${{ env.new_tag }}
+        message: "Automated release tag: ${{ env.new_tag }}"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Prepare release directory
       run: |
         mkdir -p release
