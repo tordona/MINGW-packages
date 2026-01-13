@@ -59,27 +59,45 @@ jobs:
       with:
         name: ${{ matrix.project }}-aarch64
         path: ./${{ matrix.project }}/*.zst
-  make-release:
-    runs-on: ubuntu-latest
+  release:
+    name: Release
     needs: [build-pkg]
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Tag the repository
-        id: tag
-        run: |
-          # See https://docs.github.com/en/get-started/using-git/dealing-with-special-characters-in-branch-and-tag-names
-          TAG=v$(date -Iseconds | sed 's/[T:\+]/-/g')
-          echo "$TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          git tag -a $TAG -m "Published version $TAG" ${GITHUB_SHA}
-          git push origin $TAG
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Build
-        run: echo ${{ github.sha }} > Release.txt
-      - name: Test
-        run: cat Release.txt
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            Release.txt
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Get build number
+      run: |
+        echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
+    - name: Prepare release directory
+      run: |
+        mkdir -p release
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: Zip directories
+      run: |
+        cd release
+        for f in *; do
+          if [ -d "$f" ]; then
+            cd $f
+            echo "Compressing $f"
+            zip -r $f.zip *
+            mv $f.zip ../
+            cd ..
+          fi
+        done
+    - name: Create release
+      run: |
+        gh release create ${{ github.ref_name }} ./release/*.zip \
+          --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
+          --draft \
+          --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
