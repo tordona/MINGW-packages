@@ -25,13 +25,22 @@ jobs:
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
+  setup-gpg-keys:
+    name: Setup GPG Keys
+    runs-on: windows-11-arm
+    environment: env
+    steps:
+      - name: Import
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
   build-pkg:
       runs-on: windows-11-arm
       environment: env
       defaults:
         run:
           shell: msys2 {0}
-      needs: [detect-directory-changes]
+      needs: [detect-directory-changes, setup-gpg-keys]
       strategy:
         fail-fast: false
         matrix:
@@ -44,8 +53,7 @@ jobs:
           msystem: CLANGARM64
           update: true
           install:
-              gnupg
-              # git
+              git
               # make
               # patch
               # patchutils
@@ -53,12 +61,8 @@ jobs:
               # toolchain:a
               # gcc-compat:a
               # cmake:a
-              # diffutils:a
-              gnupg:a
-      - name: Import GPG Keys
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
+              diffutils:a
+
       # - name: makepkg-mingw
       #   working-directory: ./${{ matrix.project }}
       #   run: |
