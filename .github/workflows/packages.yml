@@ -30,6 +30,18 @@ jobs:
       - name: Import GPG Keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+  build-pkg:
+      runs-on: windows-11-arm
+      environment: env
+      needs: [detect-directory-changes]
+      strategy:
+        fail-fast: false
+        matrix:
+          project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+      steps:
+        - name: Import GPG Keys
+          run: |
+            echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
   # gpg-keys:
   #   name: "GPG Keys"
   #   runs-on: ubuntu-latest
