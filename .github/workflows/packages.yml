@@ -40,7 +40,6 @@ jobs:
         update: true
         install:
             git
-            gpg
             make
             patch
             patchutils
@@ -49,6 +48,7 @@ jobs:
             gcc-compat:a
             cmake:a
             diffutils:a
+            gnupg:a
     - name: makepkg-mingw
       working-directory: ./${{ matrix.project }}
       shell: msys2 {0}
