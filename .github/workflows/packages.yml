@@ -14,6 +14,7 @@ jobs:
   detect-directory-changes:
     name: "Detect Directory Changes"
     runs-on: ubuntu-latest
+    environment: env
     outputs:
       changed: ${{ steps.detect.outputs.changed }}
     steps:
@@ -24,6 +25,11 @@ jobs:
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
+      - name: debug
+        uses: hmarr/debug-action@v3
+      - name: Import GPG Keys
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
   # gpg-keys:
   #   name: "GPG Keys"
   #   runs-on: ubuntu-latest
@@ -31,34 +37,34 @@ jobs:
   #     - name: Import GPG Keys
   #       run: |
   #         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-  build-pkg:
-    runs-on: windows-11-arm
-    environment: env
-    needs: [detect-directory-changes]
-    strategy:
-      fail-fast: false
-      matrix:
-        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-    steps:
-    - uses: actions/checkout@v5
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: CLANGARM64
-        update: true
-        # install:
-        #     git
-        #     # make
-        #     # patch
-        #     # patchutils
-        pacboy:
-            # toolchain:a
-            # gcc-compat:a
-            # cmake:a
-            # diffutils:a
-            gnupg:a
-    - name: debug
-      uses: hmarr/debug-action@v3
+  # build-pkg:
+  #   runs-on: windows-11-arm
+  #   environment: env
+  #   needs: [detect-directory-changes]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+  #   steps:
+  #   - uses: actions/checkout@v5
+  #   - name: Setup MSYS2
+  #     uses: msys2/setup-msys2@v2
+  #     with:
+  #       msystem: CLANGARM64
+  #       update: true
+  #       # install:
+  #       #     git
+  #       #     # make
+  #       #     # patch
+  #       #     # patchutils
+  #       pacboy:
+  #           # toolchain:a
+  #           # gcc-compat:a
+  #           # cmake:a
+  #           # diffutils:a
+  #           gnupg:a
+  #   - name: debug
+  #     uses: hmarr/debug-action@v3
     # - name: Import GPG Keys
     #   run: |
     #     echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
