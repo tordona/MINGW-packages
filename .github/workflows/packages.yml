@@ -57,10 +57,12 @@ jobs:
             # cmake:a
             # diffutils:a
             gnupg:a
-    - name: Import GPG Keys
-      run: |
-        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-        echo ${{ fromJSON(${{ secrets }}) }}
+    - name: debug
+      uses: hmarr/debug-action@v3
+    # - name: Import GPG Keys
+    #   run: |
+    #     echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        
     # - name: makepkg-mingw
     #   working-directory: ./${{ matrix.project }}
     #   shell: msys2 {0}
