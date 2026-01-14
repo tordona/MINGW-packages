@@ -108,9 +108,8 @@ jobs:
         done
     - name: Create release
       run: |
-        gh release create ${{ github.ref_name }} ./release/*.zip \
+        gh release create  ${{ env.new_tag }} ./release/*.zip \
           --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
-          --tag {{ env.new_tag }}
           --draft \
           --generate-notes
       env:
