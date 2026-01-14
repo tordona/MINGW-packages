@@ -61,10 +61,6 @@ jobs:
         sys:
           - clangarm64
     steps:
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{matrix.sys}}
-          pacboy: openssl:p
       - name: Import GPG Keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
