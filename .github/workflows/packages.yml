@@ -28,10 +28,9 @@ jobs:
     name: "GPG Keys"
     runs-on: ubuntu-latest
     steps:
-      - name: Setup MSYS2
+      - name: Import GPG Keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
   # build-pkg:
   #   runs-on: windows-11-arm
   #   needs: [detect-directory-changes, gpg-keys]
