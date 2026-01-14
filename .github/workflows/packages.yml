@@ -95,19 +95,20 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: release
+    - name: List all files including hidden ones and subdirectories recursively
+      run: ls -FaR
     - name: Zip directories
       run: |
         cd release
-        # for f in *; do
-        #   if [ -d "$f" ]; then
-        #     cd $f
-        #     echo "Compressing $f"
-        #     zip -r $f.zip *
-        #     mv $f.zip ../
-        #     cd ..
-        #   fi
-        # done
-        7z x *.zip
+        for f in *; do
+          if [ -d "$f" ]; then
+            cd $f
+            echo "Compressing $f"
+            7z x $f.zip
+            mv *.* ../
+            cd ..
+          fi
+        done
     - name: Create release
       run: |
         gh release create  ${{ env.new_tag }} ./release/*.zst ./release/*.sig \
