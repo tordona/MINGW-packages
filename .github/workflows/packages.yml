@@ -112,7 +112,7 @@ jobs:
     - name: Create release
       run: |
         gh release create ${{ env.new_tag }} \
-          './release/**/*.zst' './release/**/*.sig' \
+          './release/**/*.zst' \
           --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
           --draft \
           --generate-notes
