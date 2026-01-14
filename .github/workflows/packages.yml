@@ -34,6 +34,10 @@ jobs:
         matrix:
           project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
       steps:
+      - name: Import GPG Keys
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - uses: actions/checkout@v5
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -50,20 +54,13 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-              gnupg:a
-      - name: Import GPG Keys
-        shell: msys2 {0}
-        run: |
-          gpg-connect-agent reloadagent /bye
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
-      - name: makepkg-mingw
+      - name: Run makepkg
         working-directory: ./${{ matrix.project }}
         shell: msys2 {0}
         run: |
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: make-gpg-detach-sign
+      - name: GPG Detach Sign Packages
         shell: msys2 {0} 
         working-directory: ./${{ matrix.project }}
         run: |
