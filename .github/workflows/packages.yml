@@ -38,15 +38,15 @@ jobs:
         update: true
         install:
             gnupg
-            git
-            make
-            patch
-            patchutils
+            # git
+            # make
+            # patch
+            # patchutils
         pacboy:
-            toolchain:a
-            gcc-compat:a
-            cmake:a
-            diffutils:a
+            # toolchain:a
+            # gcc-compat:a
+            # cmake:a
+            # diffutils:a
             gnupg:a
   update-gpg-keys:
     name: Update GPG Keys
@@ -56,10 +56,6 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
-    strategy:
-      matrix:
-        sys:
-          - clangarm64
     steps:
       - name: Import GPG Keys
         run: |
