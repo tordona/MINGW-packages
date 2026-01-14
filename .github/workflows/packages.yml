@@ -47,19 +47,18 @@ jobs:
         update: true
         install:
             git
-            make
-            patch
-            patchutils
+            # make
+            # patch
+            # patchutils
         pacboy:
-            toolchain:a
-            gcc-compat:a
-            cmake:a
-            diffutils:a
+            # toolchain:a
+            # gcc-compat:a
+            # cmake:a
+            # diffutils:a
             gnupg:a
     - name: Import GPG Keys
       run: |
-        echo "${{ secrets }}"
-        echo "${{ secrets.env.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
     # - name: makepkg-mingw
     #   working-directory: ./${{ matrix.project }}
     #   shell: msys2 {0}
