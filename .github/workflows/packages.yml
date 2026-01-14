@@ -28,16 +28,15 @@ jobs:
   build-pkg:
       runs-on: windows-11-arm
       environment: env
+      defaults:
+        run:
+          shell: msys2 {0}
       needs: [detect-directory-changes]
       strategy:
         fail-fast: false
         matrix:
           project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
       steps:
-      - name: Import GPG Keys
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - uses: actions/checkout@v5
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -45,6 +44,7 @@ jobs:
           msystem: CLANGARM64
           update: true
           install:
+              gnupg
               git
               make
               patch
@@ -54,14 +54,17 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-      - name: Run makepkg
+              gnupg:a
+      - name: Import GPG Keys
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
+      - name: makepkg-mingw
         working-directory: ./${{ matrix.project }}
-        shell: msys2 {0}
         run: |
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: GPG Detach Sign Packages
-        shell: msys2 {0} 
+      - name: make-gpg-detach-sign
         working-directory: ./${{ matrix.project }}
         run: |
           for pkg in *.pkg.tar.zst; do
