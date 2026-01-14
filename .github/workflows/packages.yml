@@ -49,9 +49,13 @@ jobs:
             diffutils:a
             gnupg:a
   update-gpg-keys:
-    name: Udate GPG Keys
+    name: Update GPG Keys
     runs-on: windows-11-arm
     environment: env
+    needs: [setup-msys2]
+    defaults:
+      run:
+        shell: msys2 {0}
     strategy:
       matrix:
         sys:
