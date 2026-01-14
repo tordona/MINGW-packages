@@ -54,6 +54,7 @@ jobs:
       - name: Import GPG Keys
         shell: msys2 {0}
         run: |
+          gpg-connect-agent reloadagent /bye
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - name: makepkg-mingw
