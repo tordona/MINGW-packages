@@ -31,7 +31,7 @@ jobs:
     environment: env
     steps:
       - name: Import
-        shell: cmd
+        shell: powershell
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
@@ -69,7 +69,7 @@ jobs:
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
       - name: make-gpg-detach-sign
-        shell: cmd
+        shell: powershell
         working-directory: ./${{ matrix.project }}
         run: |
           for pkg in *.pkg.tar.zst; do
