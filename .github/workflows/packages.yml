@@ -58,7 +58,8 @@ jobs:
             gnupg:a
     - name: Import GPG Keys
       run: |
-        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        echo "${{ secrets }}"
+        echo "${{ secrets.env.GPG_PRIVATE_KEY }}" | gpg --batch --import
     # - name: makepkg-mingw
     #   working-directory: ./${{ matrix.project }}
     #   shell: msys2 {0}
