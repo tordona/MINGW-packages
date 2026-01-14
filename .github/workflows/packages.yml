@@ -39,9 +39,12 @@ jobs:
         matrix:
           project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
       steps:
-        - name: Import GPG Keys
-          run: |
-            echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+      - uses: actions/checkout@v5
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+      - name: Import GPG Keys
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
   # gpg-keys:
   #   name: "GPG Keys"
   #   runs-on: ubuntu-latest
