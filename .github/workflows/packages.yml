@@ -60,6 +60,7 @@ jobs:
     - name: Import GPG Keys
       run: |
         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        echo "${{ GPG_PRIVATE_KEY }}" 
     # - name: makepkg-mingw
     #   working-directory: ./${{ matrix.project }}
     #   shell: msys2 {0}
