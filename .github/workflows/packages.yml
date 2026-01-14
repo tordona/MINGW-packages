@@ -97,7 +97,7 @@ jobs:
         path: release
     - name: Zip directories
       run: |
-        # cd release
+        cd release
         # for f in *; do
         #   if [ -d "$f" ]; then
         #     cd $f
