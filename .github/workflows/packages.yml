@@ -60,13 +60,25 @@ jobs:
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
-  # gpg-keys:
-  #   name: "GPG Keys"
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Import GPG Keys
-  #       run: |
-  #         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+      - name: makepkg-mingw
+        working-directory: ./${{ matrix.project }}
+        shell: msys2 {0}
+        run: |
+          # makepkg-mingw on project directory: ${{ matrix.project }}
+          makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
+      - name: make-gpg-detach-sign
+        working-directory: ./${{ matrix.project }}
+        run: |
+          for pkg in *.pkg.tar.zst; 
+            do gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
+          done
+      - name: '📤 Upload artifact: package'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.project }}-aarch64
+          path: |
+            ./${{ matrix.project }}/*.zst
+            ./${{ matrix.project }}/*.zst.sig
   # build-pkg:
   #   runs-on: windows-11-arm
   #   environment: env
