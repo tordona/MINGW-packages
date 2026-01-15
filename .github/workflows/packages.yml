@@ -53,12 +53,6 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-      - name: '📩 Import GPG Key'
-        shell: msys2 {0}
-        working-directory: ./${{ matrix.project }}
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - name: '📦 Run makepkg-mingw on PKGBUILD'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
@@ -68,6 +62,12 @@ jobs:
           MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
+      - name: '📩 Import GPG Key'
+        shell: msys2 {0}
+        working-directory: ./${{ matrix.project }}
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - name: '🔏 GPG Detach Sign: package'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
@@ -87,7 +87,7 @@ jobs:
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
       - name: '🚚 Create Package Release'
-        shell: msys2 {0}
+        shell: bash
         run: |
           gh release create "${{ matrix.project }}" \
             "./release/${{ matrix.project }}/*.zst" \
