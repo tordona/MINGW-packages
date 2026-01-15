@@ -141,6 +141,7 @@ jobs:
     - name: Create and push the new tag
       uses: rickstaa/action-create-tag@v1
       with:
+        tag_exists_error: false
         tag: ${{ matrix.project }}
         message: 'Automated release tag: ${{ matrix.project }}'
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -154,8 +155,8 @@ jobs:
     - name: Create release
       run: |
         gh release create ${{ matrix.project }} \
-          './release/${{ matrix.project }}/*.zst' \
-          './release/${{ matrix.project }}/*.sig' \
+          './${{ matrix.project }}/*.zst' \
+          './${{ matrix.project }}/*.sig' \
           --title ${{ matrix.project }} \
           --draft \
           --generate-notes
