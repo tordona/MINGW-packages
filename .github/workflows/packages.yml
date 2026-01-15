@@ -30,17 +30,13 @@ jobs:
     runs-on: windows-11-arm
     environment: env
     steps:
-      - name: Import
-        shell: powershell
+      - name: Import GPG Key
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
   build-pkg:
       runs-on: windows-11-arm
       environment: env
-      defaults:
-        run:
-          shell: msys2 {0}
       needs: [detect-directory-changes, setup-gpg-keys]
       strategy:
         fail-fast: false
@@ -55,21 +51,21 @@ jobs:
           update: true
           install:
               git
-              # make
-              # patch
-              # patchutils
+              make
+              patch
+              patchutils
           pacboy:
-              # toolchain:a
-              # gcc-compat:a
-              # cmake:a
+              toolchain:a
+              gcc-compat:a
+              cmake:a
               diffutils:a
       - name: makepkg-mingw
+        shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
       - name: make-gpg-detach-sign
-        shell: powershell
         working-directory: ./${{ matrix.project }}
         run: |
           for pkg in *.pkg.tar.zst; do
