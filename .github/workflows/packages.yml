@@ -154,11 +154,12 @@ jobs:
         path: release
     - name: Create release
       run: |
-        gh release create ${{ matrix.project }} \
-          './${{ matrix.project }}/*.zst' \
-          './${{ matrix.project }}/*.sig' \
-          --title ${{ matrix.project }} \
-          --draft \
-          --generate-notes
+        ls -la
+        # gh release create ${{ matrix.project }} \
+        #   './${{ matrix.project }}/*.zst' \
+        #   './${{ matrix.project }}/*.sig' \
+        #   --title ${{ matrix.project }} \
+        #   --draft \
+        #   --generate-notes
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
