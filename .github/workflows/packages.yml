@@ -50,7 +50,6 @@ jobs:
               patch
               patchutils
           pacboy:
-              toolchain:a
               gcc-compat:a
               cmake:a
               diffutils:a
