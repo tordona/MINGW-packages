@@ -57,15 +57,15 @@ jobs:
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
-          echo '${{ secrets.GPG_PRIVATE_KEY }}' | gpg --batch --import
-          echo '${{ secrets.GPG_FINGERPRINT }}:6:' | gpg --batch --import-ownertrust
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
       - name: '📦 Run makepkg-mingw on PKGBUILD'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
           # set parallel worker count
           export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
-          MAKEFLAGS='-j${{ steps.cpu-cores.outputs.count }}'
+          MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
       - name: '🔏 GPG Detach Sign: package'
@@ -75,9 +75,9 @@ jobs:
           for pkg in *.zst; do
             echo $pkg;
             gpg --batch --yes --pinentry-mode loopback \
-            --passphrase '${{ secrets.GPG_PASSPHRASE }}' \
-            --output '$pkg.sig' \
-            --detach-sig '$pkg'
+            --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+            --output "$pkg.sig" \
+            --detach-sig "$pkg"
           done
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
@@ -104,10 +104,10 @@ jobs:
       id: generate_tag
       run: |
         # Format date as YYYY-MM-DD-HHMMSS (e.g., release-2025-01-13-165900)
-        TAG_NAME='release-$(date +'%Y-%m-%d-%H%M%S')'
-        echo 'Generated tag name: $TAG_NAME'
+        TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"
+        echo "Generated tag name: $TAG_NAME"
         # Set the tag name as an output variable for subsequent steps
-        echo 'new_tag=$TAG_NAME' >> $GITHUB_ENV
+        echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
     - name: Create and push the new tag
       uses: rickstaa/action-create-tag@v1
       with:
@@ -126,7 +126,7 @@ jobs:
         gh release create ${{ env.new_tag }} \
           './release/**/*.zst' \
           './release/**/*.sig' \
-          --title '${{ env.NAME_UPPER }} ${{ github.ref_name }}' \
+          --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
           --draft \
           --generate-notes
       env:
