@@ -86,18 +86,18 @@ jobs:
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
-      - name: '🚚 Create Package Release'
-        shell: msys2 {0}
-        run: |
-          pacman -S --noconfirm mingw-w64-clang-aarch64-github-cli
-          gh release create "${{ matrix.project }}" \
-            "./${{ matrix.project }}/*.zst" \
-            "./${{ matrix.project }}/*.sig" \
-            --title "${{ matrix.project }}" \
-            --draft \
-            --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ github.TOKEN }}
+      # - name: '🚚 Create Package Release'
+      #   shell: msys2 {0}
+      #   run: |
+      #     pacman -S --noconfirm mingw-w64-clang-aarch64-github-cli
+      #     gh release create "${{ matrix.project }}" \
+      #       "./${{ matrix.project }}/*.zst" \
+      #       "./${{ matrix.project }}/*.sig" \
+      #       --title "${{ matrix.project }}" \
+      #       --draft \
+      #       --generate-notes
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.TOKEN }}
   # cleanup:
   #   name: '🧹 Clean up deployment log'
   #   runs-on: ubuntu-latest
@@ -110,49 +110,54 @@ jobs:
   #         token: ${{ secrets.GITHUB_TOKEN }}
   #         environment: env
   #         onlyRemoveDeployments: true
-  # release:
-  #   name: '🚚 Release'
-  #   needs: [build-packages, cleanup]
-  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #   - name: Generate dated tag name
-  #     id: generate_tag
-  #     run: |
-  #       # TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"        
-  #       TAG_NAME="release-${{ github.run_number }}"
-  #       echo "Generated tag name: $TAG_NAME"
+  release:
+    name: '🚚 Release'
+    needs: [detect-directory-changes, build-packages]
+    environment: env
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Generate dated tag name
+      id: generate_tag
+      run: |
+        # TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"        
+        TAG_NAME="release-${{ github.run_number }}"
+        echo "Generated tag name: $TAG_NAME"
 
-  #       # Set the tag name as an output variable for subsequent steps
-  #       echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
-  #   - name: Create and push the new tag
-  #     uses: rickstaa/action-create-tag@v1
-  #     with:
-  #       tag: ${{ env.new_tag }}
-  #       message: 'Automated release tag: ${{ env.new_tag }}'
-  #       github_token: ${{ secrets.GITHUB_TOKEN }}
-  #   - name: Prepare release directory
-  #     run: |
-  #       mkdir -p release
-  #   - name: Download artifacts
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       path: release
-  #   - name: Create release
-  #     run: |
-  #       gh release create ${{ env.new_tag }} \
-  #         './release/**/*.zst' \
-  #         './release/**/*.sig' \
-  #         --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
-  #         --draft \
-  #         --generate-notes
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
+        # Set the tag name as an output variable for subsequent steps
+        echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
+    - name: Create and push the new tag
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ${{ matrix.project }}
+        message: 'Automated release tag: ${{ matrix.project }}'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Prepare release directory
+      run: |
+        mkdir -p release
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: Create release
+      run: |
+        gh release create ${{ matrix.project }} \
+          './release/${{ matrix.project }}/*.zst' \
+          './release/${{ matrix.project }}/*.sig' \
+          --title ${{ matrix.project }} \
+          --draft \
+          --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
