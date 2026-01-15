@@ -12,7 +12,7 @@ on:
 
 jobs:
   detect-directory-changes:
-    name: "Detect Directory Changes"
+    name: "🕵 Detect Directory Changes"
     runs-on: ubuntu-latest
     environment: env
     outputs:
@@ -25,16 +25,6 @@ jobs:
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
-  # setup-gpg-keys:
-  #   name: Setup GPG Keys
-  #   runs-on: windows-11-arm
-  #   environment: env
-  #   steps:
-  #     - name: Import GPG Key
-  #       shell: bash
-  #       run: |
-  #         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-  #         echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
   build-pkg:
       runs-on: windows-11-arm
       environment: env
@@ -45,10 +35,10 @@ jobs:
           project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
       steps:
       - uses: actions/checkout@v5
-      - name: Get number of CPU cores
+      - name: '🖥️ Get number of CPU cores'
         uses: SimenB/github-actions-cpu-cores@v2
         id: cpu-cores
-      - name: Setup MSYS2
+      - name: '🔧 Setup MSYS2'
         uses: msys2/setup-msys2@v2
         with:
           msystem: CLANGARM64
@@ -76,10 +66,9 @@ jobs:
           # set parallel worker count
           export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
           MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
-
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: '🔏 GPG Detach Sign'
+      - name: '🔏 GPG Detach Sign: package'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
@@ -97,104 +86,47 @@ jobs:
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
-  # build-pkg:
-  #   runs-on: windows-11-arm
-  #   environment: env
-  #   needs: [detect-directory-changes]
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-  #   steps:
-  #   - uses: actions/checkout@v5
-  #   - name: Setup MSYS2
-  #     uses: msys2/setup-msys2@v2
-  #     with:
-  #       msystem: CLANGARM64
-  #       update: true
-  #       # install:
-  #       #     git
-  #       #     # make
-  #       #     # patch
-  #       #     # patchutils
-  #       pacboy:
-  #           # toolchain:a
-  #           # gcc-compat:a
-  #           # cmake:a
-  #           # diffutils:a
-  #           gnupg:a
-  #   - name: debug
-  #     uses: hmarr/debug-action@v3
-    # - name: Import GPG Keys
-    #   run: |
-    #     echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-        
-    # - name: makepkg-mingw
-    #   working-directory: ./${{ matrix.project }}
-    #   shell: msys2 {0}
-    #   run: |
-    #     # makepkg-mingw on project directory: ${{ matrix.project }}
-    #     makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-    # - name: '📤 Upload artifact: package'
-    #   uses: actions/upload-artifact@v6
-    #   with:
-    #     name: ${{ matrix.project }}-aarch64
-    #     path: ./${{ matrix.project }}/*.zst
-  # release:
-  #   name: Release
-  #   needs: [build-pkg]
-  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #   - name: Generate dated tag name
-  #     id: generate_tag
-  #     run: |
-  #       # Format date as YYYY-MM-DD-HHMMSS (e.g., release-2025-01-13-165900)
-  #       TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"
-  #       echo "Generated tag name: $TAG_NAME"
-  #       # Set the tag name as an output variable for subsequent steps
-  #       echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
-  #   - name: Create and push the new tag
-  #     uses: rickstaa/action-create-tag@v1
-  #     with:
-  #       tag: ${{ env.new_tag }}
-  #       message: "Automated release tag: ${{ env.new_tag }}"
-  #       github_token: ${{ secrets.GITHUB_TOKEN }}
-  #   - name: Prepare release directory
-  #     run: |
-  #       mkdir -p release
-  #   - name: Download artifacts
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       path: release
-  #   # - name: List all files including hidden ones and subdirectories recursively
-  #   #   run: ls -FaR
-  #   # - name: Zip directories
-  #   #   run: |
-  #   #     cd release
-  #   #     for f in *; do
-  #   #       if [ -d "$f" ]; then
-  #   #         cd $f
-  #   #         echo "Compressing $f"
-  #   #         7z x $f.zip
-  #   #         mv *.* ../
-  #   #         cd ..
-  #   #       fi
-  #   #     done
-  #   - name: Create release
-  #     run: |
-  #       gh release create ${{ env.new_tag }} \
-  #         './release/**/*.zst' \
-  #         --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
-  #         --draft \
-  #         --generate-notes
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
+  release:
+    name: Release
+    needs: [build-pkg]
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Generate dated tag name
+      id: generate_tag
+      run: |
+        # Format date as YYYY-MM-DD-HHMMSS (e.g., release-2025-01-13-165900)
+        TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"
+        echo "Generated tag name: $TAG_NAME"
+        # Set the tag name as an output variable for subsequent steps
+        echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
+    - name: Create and push the new tag
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ${{ env.new_tag }}
+        message: "Automated release tag: ${{ env.new_tag }}"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Prepare release directory
+      run: |
+        mkdir -p release
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: Create release
+      run: |
+        gh release create ${{ env.new_tag }} \
+          './release/**/*.zst' \
+          --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
+          --draft \
+          --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
