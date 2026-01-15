@@ -82,7 +82,7 @@ jobs:
           for pkg in *.zst; do
             echo $pkg;
             # echo "${{ secrets.GPG_PASSPHRASE }}" | gpg -u ${{ secrets.GPG_FINGERPRINT }} --batch --passphrase-fd 0 --output "$pkg.sig" --detach-sig "$pkg";
-            echo "${{ secrets.GPG_PASSPHRASE }}" | gpg -u ${{ secrets.GPG_FINGERPRINT }} --batch --yes --pinentry-mode loopback --output "$pkg.sig" --detach-sig "$pkg"
+            echo "${{ secrets.GPG_PASSPHRASE }}" | gpg -u ${{ secrets.GPG_FINGERPRINT }} --yes --pinentry-mode loopback --output "$pkg.sig" --detach-sig "$pkg"
           done
       # - name: '📤 Upload artifact: package'
       #   uses: actions/upload-artifact@v6
