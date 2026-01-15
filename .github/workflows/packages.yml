@@ -66,12 +66,13 @@ jobs:
         run: |
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      # - name: make-gpg-detach-sign
-      #   working-directory: ./${{ matrix.project }}
-      #   run: |
-      #     for /r %%i in (*.zst) do (
-      #       gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "%%i.sig" --detach-sig "%%i";
-      #     )
+      - name: make-gpg-detach-sign
+        shell: bash
+        working-directory: ./${{ matrix.project }}
+        run: |
+          for pkg in *.zst; 
+            do gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
+          done
       # - name: '📤 Upload artifact: package'
       #   uses: actions/upload-artifact@v6
       #   with:
