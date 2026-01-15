@@ -68,9 +68,10 @@ jobs:
       - name: make-gpg-detach-sign
         working-directory: ./${{ matrix.project }}
         run: |
-          for pkg in *.pkg.tar.zst; do
-            do gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
-          done
+          for /r %%i in (*.zst) do (
+            ffmpeg -i "%%i" -vf "crop=%width%:%height%" "%%i_cropped".mp4
+            gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "%%i.sig" --detach-sig "%%i";
+          )
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with:
