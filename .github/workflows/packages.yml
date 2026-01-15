@@ -26,7 +26,7 @@ jobs:
         with:
           included-paths: '!./.github/**'
   build-packages:
-      name: '⚒️ Build Package Scripts'
+      name: '⚒️ Build ${{ matrix.project }}'
       runs-on: windows-11-arm
       environment: env
       needs: [detect-directory-changes]
@@ -118,7 +118,7 @@ jobs:
         # TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"        
         TAG_NAME="release-${{ github.run_number }}"
         echo "Generated tag name: $TAG_NAME"
-        
+
         # Set the tag name as an output variable for subsequent steps
         echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
     - name: Create and push the new tag
