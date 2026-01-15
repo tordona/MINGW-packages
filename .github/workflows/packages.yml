@@ -87,7 +87,7 @@ jobs:
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
       - name: '🚚 Create Package Release'
-        shell: bash
+        shell: msys2 {0}
         run: |
           pacboy github-cli:a
           gh release create "${{ matrix.project }}" \
