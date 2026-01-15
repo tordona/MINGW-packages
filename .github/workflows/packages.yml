@@ -31,7 +31,7 @@ jobs:
     environment: env
     steps:
       - name: Import GPG Key
-        shell: powershell
+        shell: cmd
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
