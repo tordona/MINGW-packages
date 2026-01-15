@@ -31,6 +31,7 @@ jobs:
     environment: env
     steps:
       - name: Import GPG Key
+        shell: powershell
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
@@ -65,20 +66,19 @@ jobs:
         run: |
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: make-gpg-detach-sign
-        working-directory: ./${{ matrix.project }}
-        run: |
-          for /r %%i in (*.zst) do (
-            ffmpeg -i "%%i" -vf "crop=%width%:%height%" "%%i_cropped".mp4
-            gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "%%i.sig" --detach-sig "%%i";
-          )
-      - name: '📤 Upload artifact: package'
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ matrix.project }}-aarch64
-          path: |
-            ./${{ matrix.project }}/*.zst
-            ./${{ matrix.project }}/*.zst.sig
+      # - name: make-gpg-detach-sign
+      #   working-directory: ./${{ matrix.project }}
+      #   run: |
+      #     for /r %%i in (*.zst) do (
+      #       gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "%%i.sig" --detach-sig "%%i";
+      #     )
+      # - name: '📤 Upload artifact: package'
+      #   uses: actions/upload-artifact@v6
+      #   with:
+      #     name: ${{ matrix.project }}-aarch64
+      #     path: |
+      #       ./${{ matrix.project }}/*.zst
+      #       ./${{ matrix.project }}/*.zst.sig
   # build-pkg:
   #   runs-on: windows-11-arm
   #   environment: env
