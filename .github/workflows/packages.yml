@@ -63,17 +63,23 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-      - name: makepkg-mingw
+      # - name: makepkg-mingw
+      #   shell: msys2 {0}
+      #   working-directory: ./${{ matrix.project }}
+      #   run: |
+      #     # set parallel worker count
+      #     export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
+      #     MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
+
+      #     # makepkg-mingw on project directory: ${{ matrix.project }}
+      #     makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
+      - name: make-gpg-detach-sign1
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
-          # set parallel worker count
-          export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
-          MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
-
-          # makepkg-mingw on project directory: ${{ matrix.project }}
-          makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: make-gpg-detach-sign
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
+      - name: make-gpg-detach-sign2
         shell: bash
         working-directory: ./${{ matrix.project }}
         run: |
