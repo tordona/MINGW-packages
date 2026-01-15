@@ -86,9 +86,20 @@ jobs:
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [build-packages]
+    permissions: write-all
+    steps:
+      - name: 🗑 Delete deployment
+        uses: strumwolf/delete-deployment-environment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: env
+          onlyRemoveDeployments: true
   release:
     name: '🚚 Release'
-    needs: [build-packages]
+    needs: [build-packages, cleanup]
     # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
