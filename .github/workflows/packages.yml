@@ -154,11 +154,14 @@ jobs:
         path: release
     - name: Create release
       run: |
+        ls -laR
         ls -la
         cd ${{ matrix.project }} 
         ls -la
         cd ..
         cd release
+        ls -la
+        cd ${{ matrix.project }}-aarch64
         ls -la
         # gh release create ${{ matrix.project }} \
         #   './${{ matrix.project }}/*.zst' \
