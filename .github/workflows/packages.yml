@@ -76,9 +76,9 @@ jobs:
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
-          for pkg in *.zst;
+          for pkg in *.zst; do
             echo $pkg;
-            do gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
+            gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
           done
       # - name: '📤 Upload artifact: package'
       #   uses: actions/upload-artifact@v6
