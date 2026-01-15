@@ -77,6 +77,8 @@ jobs:
         shell: bash
         working-directory: ./${{ matrix.project }}
         run: |
+          export GPG_TTY=$(tty)
+          echo "no-tty" >> ~/.gnupg/gpg.conf
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
           for pkg in *.zst; do
