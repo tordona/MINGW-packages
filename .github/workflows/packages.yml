@@ -87,6 +87,7 @@ jobs:
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
       - name: '🚚 Create Package Release'
+        shell: msys2 {0}
         run: |
           gh release create "${{ matrix.project }}" \
             "./release/${{ matrix.project }}/*.zst" \
