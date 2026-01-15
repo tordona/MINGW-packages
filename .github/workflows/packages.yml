@@ -25,20 +25,20 @@ jobs:
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
-  setup-gpg-keys:
-    name: Setup GPG Keys
-    runs-on: windows-11-arm
-    environment: env
-    steps:
-      - name: Import GPG Key
-        shell: bash
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
+  # setup-gpg-keys:
+  #   name: Setup GPG Keys
+  #   runs-on: windows-11-arm
+  #   environment: env
+  #   steps:
+  #     - name: Import GPG Key
+  #       shell: bash
+  #       run: |
+  #         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+  #         echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
   build-pkg:
       runs-on: windows-11-arm
       environment: env
-      needs: [detect-directory-changes, setup-gpg-keys]
+      needs: [detect-directory-changes]
       strategy:
         fail-fast: false
         matrix:
@@ -70,6 +70,8 @@ jobs:
         shell: bash
         working-directory: ./${{ matrix.project }}
         run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
           for pkg in *.zst; 
             do gpg -u ${{ secrets.GPG_FINGERPRINT }} --output "$pkg.sig" --detach-sig "$pkg";
           done
