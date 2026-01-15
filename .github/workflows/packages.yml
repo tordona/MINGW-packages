@@ -63,13 +63,13 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-      - name: make-gpg-detach-sign1
+      - name: '📩 Import GPG Key'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
-      - name: makepkg-mingw
+      - name: '📦 Run makepkg-mingw on PKGBUILD'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
@@ -79,7 +79,7 @@ jobs:
 
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
-      - name: make-gpg-detach-sign2
+      - name: '🔏 GPG Detach Sign'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
@@ -90,13 +90,13 @@ jobs:
             --output "$pkg.sig" \
             --detach-sig "$pkg"
           done
-      # - name: '📤 Upload artifact: package'
-      #   uses: actions/upload-artifact@v6
-      #   with: 
-      #     name: ${{ matrix.project }}-aarch64
-      #     path: |
-      #       ./${{ matrix.project }}/*.zst
-      #       ./${{ matrix.project }}/*.zst.sig
+      - name: '📤 Upload artifact: package'
+        uses: actions/upload-artifact@v6
+        with: 
+          name: ${{ matrix.project }}-aarch64
+          path: |
+            ./${{ matrix.project }}/*.zst
+            ./${{ matrix.project }}/*.zst.sig
   # build-pkg:
   #   runs-on: windows-11-arm
   #   environment: env
