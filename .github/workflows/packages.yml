@@ -74,6 +74,8 @@ jobs:
           # makepkg-mingw on project directory: ${{ matrix.project }}
           makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
       - name: make-gpg-detach-sign
+        env:
+          GPG_TTY: $(tty)
         shell: bash
         working-directory: ./${{ matrix.project }}
         run: |
