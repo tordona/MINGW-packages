@@ -47,4 +47,7 @@ build() {
 package() {
   cd "${srcdir}/build-${MSYSTEM}"
   make -j1 DESTDIR="${pkgdir}" install
+
+  install -Dm644 "${srcdir}"/${_realname}-${pkgver}/COPYING \
+  "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }
