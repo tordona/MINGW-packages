@@ -115,9 +115,10 @@ jobs:
     - name: Generate dated tag name
       id: generate_tag
       run: |
-        # Format date as YYYY-MM-DD-HHMMSS (e.g., release-2025-01-13-165900)
-        TAG_NAME="release-$(date + '${{ github.run_number }}'"
+        # TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"        
+        TAG_NAME="release-${{ github.run_number }}"
         echo "Generated tag name: $TAG_NAME"
+        
         # Set the tag name as an output variable for subsequent steps
         echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
     - name: Create and push the new tag
