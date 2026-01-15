@@ -91,8 +91,8 @@ jobs:
         run: |
           pacman -S --noconfirm mingw-w64-clang-aarch64-github-cli
           gh release create "${{ matrix.project }}" \
-            "./release/${{ matrix.project }}/*.zst" \
-            "./release/${{ matrix.project }}/*.sig" \
+            "./${{ matrix.project }}/*.zst" \
+            "./${{ matrix.project }}/*.sig" \
             --title "${{ matrix.project }}" \
             --draft \
             --generate-notes
