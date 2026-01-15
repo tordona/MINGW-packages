@@ -25,7 +25,8 @@ jobs:
         uses: tchupp/actions-detect-directory-changes@v1
         with:
           included-paths: "!./.github/**"
-  build-pkg:
+  build-packages:
+      name: '⚒️ Build Package Scripts'
       runs-on: windows-11-arm
       environment: env
       needs: [detect-directory-changes]
@@ -87,8 +88,8 @@ jobs:
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
   release:
-    name: Release
-    needs: [build-pkg]
+    name: '🚚 Release'
+    needs: [build-packages]
     # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
@@ -125,6 +126,7 @@ jobs:
       run: |
         gh release create ${{ env.new_tag }} \
           './release/**/*.zst' \
+          './release/**/*.sig' \
           --title "${{ env.NAME_UPPER }} ${{ github.ref_name }}" \
           --draft \
           --generate-notes
