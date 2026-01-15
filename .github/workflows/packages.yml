@@ -86,11 +86,11 @@ jobs:
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
-      - name: Create release
+      - name: '🚚 Create Package Release'
         run: |
-          gh release create ${{ matrix.project }} \
-            './release/**/*.zst' \
-            './release/**/*.sig' \
+          gh release create "${{ matrix.project }}" \
+            "./release/${{ matrix.project }}/*.zst" \
+            "./release/${{ matrix.project }}/*.sig" \
             --title "${{ matrix.project }}" \
             --draft \
             --generate-notes
