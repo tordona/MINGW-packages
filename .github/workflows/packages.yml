@@ -86,6 +86,7 @@ jobs:
           done
       - name: '🗜️ 7Zip Archive Sources'
         run: |
+          pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
           source ./PKGBUILD
           version=$pkgver.$pkgrel
           7z a ${{ matrix.project }}-aarch64-$pkgver.$pkgrel-any.pkg.src.7z *.*  -x!*.zst -x!*.sig
