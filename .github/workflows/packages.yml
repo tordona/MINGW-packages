@@ -176,7 +176,7 @@ jobs:
             './release/${{ matrix.project }}-*/*.sig' \
             './release/${{ matrix.project }}-*/*.7z' \
             --title ${{ matrix.project }} \
-            --notes ${{ matrix.project }}
+            --notes '${{ matrix.project }}\n\nPackage Sources are in *.src.7z'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
 
