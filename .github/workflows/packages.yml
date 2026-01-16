@@ -86,10 +86,20 @@ jobs:
           done
       - name: '🗜️ 7Zip Archive Sources'
         run: |
-          pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
+          # archive and make available sources directly related to this package
+          # pull version properties and reconstitute filename
+          # TODO: make compiler and arch strings dynamic
           source ./PKGBUILD
-          version=$pkgver.$pkgrel
-          7z a ${{ matrix.project }}-aarch64-$pkgver.$pkgrel-any.pkg.src.7z *.*  -x!*.zst -x!*.sig
+          prefix=""
+          if [[ -n $epoch ]]; then
+            prefix="$epoch~"
+          fi
+          version="$prefix$pkgver.$pkgrel"
+          filename=${${{ matrix.project }}/mingw\-w64/mingw\-w64\-clang\-aarch64}
+
+          pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
+          
+          7z a $filename-$version-any.pkg.src.7z *.*  -x!*.zst -x!*.sig
           ls -la
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
@@ -152,6 +162,7 @@ jobs:
           gh release upload "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ matrix.project }}-*/*.7z' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -161,6 +172,7 @@ jobs:
           gh release create "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ matrix.project }}-*/*.7z' \
             --title ${{ matrix.project }} \
             --notes ${{ matrix.project }}
       env:
