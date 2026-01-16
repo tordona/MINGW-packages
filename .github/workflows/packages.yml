@@ -152,29 +152,28 @@ jobs:
         path: release
     - name: 'Check Release Exists'
       id: check-release-exists
-      uses: f2calv/gha-check-release-exists@v2
+      uses: insightsengineering/release-existence-action@v1.0.0
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        ReleaseName: "${{ matrix.project }}"
+        release-tag: "${{ matrix.project }}"
     - name: Check Tag Exists
       id: check-tag
       uses: mukunku/tag-exists-action@v1.7.0
       with:
         tag: "${{ matrix.project }}"
     - name: Upload to existing release
-      if: steps.check-release-exists.outputs.ReleaseExists == 'true' 
+      if: steps.check-release-exists.outputs.release-exists == 'true' 
       run: |
         echo steps.check-tag.outputs.exist
-          gh release upload ${{ matrix.project }} \
+          gh release upload "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
     - name: Create new release
-      if: steps.check-release-exists.outputs.ReleaseExists == 'false' 
+      if: steps.check-release-exists.outputs.release-exists == 'false' 
       run: |
-          gh release create ${{ matrix.project }} \
+          gh release create "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
