@@ -166,15 +166,12 @@ jobs:
             --clobber \
             --draft \
             --generate-notes
-    - name: Edit release
+    - name: Upload to existing release
       if: steps.check-tag.outputs.exists == 'true' 
       run: |
-          gh release edit ${{ matrix.project }} \
+          gh release upload ${{ matrix.project }} \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
-            --title ${{ matrix.project }} \
-            --latest \
-            --draft \
-            --notes "Notes Test"
+            --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
