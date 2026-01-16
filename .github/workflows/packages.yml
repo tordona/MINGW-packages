@@ -62,6 +62,8 @@ jobs:
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
+          sed -i 's/#PACKAGER="John Doe <john@doe.com>"/PACKAGER="CI (tordona\/${{ github.triggering_actor }}\/${{ github.run_id }})"/' /etc/makepkg.conf
+          cp /etc/makepkg.conf ~/makepkg.conf
           # set parallel worker count
           export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
           MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
