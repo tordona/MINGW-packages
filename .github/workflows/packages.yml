@@ -101,8 +101,7 @@ jobs:
 
           pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
-          7z a $filename-$version-any.pkg.src.7z *.*  -x!*.zst -x!*.sig
-          ls -la
+          7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
