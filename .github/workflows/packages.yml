@@ -175,6 +175,6 @@ jobs:
             --title ${{ matrix.project }} \
             --latest \
             --draft \
-            --generate-notes
+            --notes "Notes Test"
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
