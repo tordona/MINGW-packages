@@ -148,9 +148,10 @@ jobs:
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
-            --clobber \
-            --draft
+            --clobber 
     - name: Upload to existing release
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
       if: steps.check-tag.outputs.exists == 'true' 
       run: |
           gh release upload ${{ matrix.project }} \
