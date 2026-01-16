@@ -61,7 +61,7 @@ jobs:
       - name: '🔩 Update Packager Meta'
         run: |
           if test -f "/etc/makepkg_mingw.conf"; then
-            sed -i 's/#PACKAGER="John Doe <john@doe.com>"/PACKAGER="CI (${{ github.repository_owner }}\/${{ github.triggering_actor }}\/${{ github.run_id }})"/'
+            sed -i 's/#PACKAGER="John Doe <john@doe.com>"/PACKAGER="CI (${{ github.repository_owner }}\/${{ github.triggering_actor }}\/${{ github.run_id }})"/' /etc/makepkg_mingw.conf
           fi
       - name: '📦 Run makepkg-mingw on PKGBUILD'
         run: |
@@ -84,7 +84,7 @@ jobs:
             --output "$pkg.sig" \
             --detach-sig "$pkg"
           done
-      - name: '🏛 7Zip Archive Sources'
+      - name: '🗜️ 7Zip Archive Sources'
         run: |
           source ./PKGBUILD
           version=$pkgver.$pkgrel
