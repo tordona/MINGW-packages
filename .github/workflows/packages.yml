@@ -150,13 +150,19 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: release
+    - name: 'Check Release Exists'
+      id: check-release-exists
+      uses: mukunku/tag-exists-action@v1.7.0
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ReleaseName: "${{ matrix.project }}"
     - name: Check Tag Exists
       id: check-tag
       uses: mukunku/tag-exists-action@v1.7.0
       with:
         tag: "${{ matrix.project }}"
     - name: Upload to existing release
-      if: steps.check-tag.outputs.exists == 'true' 
+      if: steps.check-release-exists.outputs.ReleaseExists == 'true' 
       run: |
         echo steps.check-tag.outputs.exist
           gh release upload ${{ matrix.project }} \
@@ -166,7 +172,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
     - name: Create new release
-      if: steps.check-tag.outputs.exists == 'false' 
+      if: steps.check-release-exists.outputs.ReleaseExists == 'false' 
       run: |
           gh release create ${{ matrix.project }} \
             './release/${{ matrix.project }}-*/*.zst' \
