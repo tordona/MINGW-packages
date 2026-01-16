@@ -178,10 +178,6 @@ jobs:
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
-            --latest \
-            --clobber \
-            --draft \
-            --generate-notes
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
 
