@@ -127,22 +127,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    # - name: Generate dated tag name
-    #   id: generate_tag
-    #   run: |
-    #     # TAG_NAME="release-$(date +'%Y-%m-%d-%H%M%S')"        
-    #     TAG_NAME="release-${{ github.run_number }}"
-    #     echo "Generated tag name: $TAG_NAME"
-
-    #     # Set the tag name as an output variable for subsequent steps
-    #     echo "new_tag=$TAG_NAME" >> $GITHUB_ENV
-    # - name: Create and push the new tag
-    #   uses: rickstaa/action-create-tag@v1
-    #   with:
-    #     tag_exists_error: false
-    #     tag: ${{ matrix.project }}
-    #     message: 'Automated release tag: ${{ matrix.project }}'
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Prepare release directory
       run: |
         mkdir -p release
@@ -155,17 +139,17 @@ jobs:
       uses: mukunku/tag-exists-action@v1.7.0
       with:
         tag: "${{ matrix.project }}"
-    - name: Create release
+    - name: Create new release
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
       if: steps.check-tag.outputs.exists == 'false' 
       run: |
           gh release create ${{ matrix.project }} \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
-            --latest \
             --clobber \
-            --draft \
-            --generate-notes
+            --draft
     - name: Upload to existing release
       if: steps.check-tag.outputs.exists == 'true' 
       run: |
@@ -173,5 +157,4 @@ jobs:
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --clobber
-      env:
-        GITHUB_TOKEN: ${{ github.TOKEN }}
+
