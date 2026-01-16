@@ -56,7 +56,7 @@ jobs:
       - name: '🔧 Update Packager Meta'
         shell: msys2 {0}
         run: |
-          sed -i 's/#PACKAGER="John Doe <john@doe.com>/PACKAGER="CI (tordona/${{ github.triggering_actor }}/${{ github.run_id }}"/' /etc/makepkg.conf
+          sed -i 's/#PACKAGER="John Doe <john@doe.com>/PACKAGER="CI (tordona\/${{ github.triggering_actor }}\/${{ github.run_id }})"/' /etc/makepkg.conf
       - name: '📦 Run makepkg-mingw on PKGBUILD'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
