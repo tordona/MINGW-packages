@@ -101,7 +101,7 @@ jobs:
 
           pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
-          7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig
+          7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig -x!*/
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
@@ -111,6 +111,7 @@ jobs:
             ./${{ matrix.project }}/*.zst.sig
             ./${{ matrix.project }}/*.src.7z
   cleanup:
+    if: ${{ github.ref_name != 'master' }}
     name: '🧹 Clean up deployment log'
     runs-on: ubuntu-latest
     needs: [build-packages]
