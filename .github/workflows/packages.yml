@@ -174,7 +174,6 @@ jobs:
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
             --latest \
-            --clobber \
             --draft \
             --generate-notes
       env:
