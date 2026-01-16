@@ -155,6 +155,16 @@ jobs:
       uses: mukunku/tag-exists-action@v1.7.0
       with:
         tag: "${{ matrix.project }}"
+    - name: Upload to existing release
+      if: steps.check-tag.outputs.exists == 'true' 
+      run: |
+        echo steps.check-tag.outputs.exist
+          gh release upload ${{ matrix.project }} \
+            './release/${{ matrix.project }}-*/*.zst' \
+            './release/${{ matrix.project }}-*/*.sig' \
+            --clobber
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
     - name: Create new release
       if: steps.check-tag.outputs.exists == 'false' 
       run: |
@@ -168,12 +178,4 @@ jobs:
             --generate-notes
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
-    - name: Upload to existing release
-      if: steps.check-tag.outputs.exists == 'true' 
-      run: |
-          gh release upload ${{ matrix.project }} \
-            './release/${{ matrix.project }}-*/*.zst' \
-            './release/${{ matrix.project }}-*/*.sig' \
-            --clobber
-      env:
-        GITHUB_TOKEN: ${{ github.TOKEN }}
+
