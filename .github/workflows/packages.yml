@@ -151,13 +151,14 @@ jobs:
       with:
         path: release
     - name: Check Tag Exists
+      id: check-tag
       uses: mukunku/tag-exists-action@v1.7.0
       with:
         tag: "${{ matrix.project }}"
     - name: Create release
+      if: steps.check-tag.outputs.exists == 'false' 
       run: |
-        if: steps.check-tag.outputs.exists == 'true' 
-          gh release edit ${{ matrix.project }} \
+          gh release create ${{ matrix.project }} \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
@@ -165,8 +166,10 @@ jobs:
             --clobber \
             --draft \
             --generate-notes
-        if: steps.check-tag.outputs.exists == 'false' 
-          gh release create ${{ matrix.project }} \
+    - name: Edit release
+      if: steps.check-tag.outputs.exists == 'true' 
+      run: |
+          gh release edit ${{ matrix.project }} \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             --title ${{ matrix.project }} \
