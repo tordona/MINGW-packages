@@ -152,7 +152,7 @@ jobs:
         path: release
     - name: 'Check Release Exists'
       id: check-release-exists
-      uses: mukunku/tag-exists-action@v1.7.0
+      uses: f2calv/gha-check-release-exists@v2
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         ReleaseName: "${{ matrix.project }}"
