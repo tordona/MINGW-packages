@@ -53,11 +53,11 @@ jobs:
               gcc-compat:a
               cmake:a
               diffutils:a
-      - name: '🔧 Inject Packager Meta'
+      - name: '🔧 Update Packager Meta'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
         run: |
-          sed -i "1s|^|PACKAGER="CI (${{ github.repository_owner }}\/${{ github.triggering_actor }}\/${{ github.run_id }})\n\n|" PKGBUILD;
+          sed -i '1s|^|PACKAGER="CI (${{ github.repository_owner }}\/${{ github.triggering_actor }}\/${{ github.run_id }})"\n\n|' PKGBUILD;
       - name: '📦 Run makepkg-mingw on PKGBUILD'
         shell: msys2 {0}
         working-directory: ./${{ matrix.project }}
