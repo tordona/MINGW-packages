@@ -160,7 +160,10 @@ jobs:
     - name: '📤 Upload to existing release'
       if: steps.check-release-exists.outputs.release-exists == 'true' 
       run: |
+          cd ./release
           ls -laR
+          cd ..
+
           gh release upload "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
@@ -171,7 +174,10 @@ jobs:
     - name: '🔨 Create new release'
       if: steps.check-release-exists.outputs.release-exists == 'false' 
       run: |
+          cd ./release
           ls -laR
+          cd ..
+
           gh release create "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
