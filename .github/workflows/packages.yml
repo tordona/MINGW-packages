@@ -1,4 +1,4 @@
-name: MSYS2 PKGBUILD CI
+name: MINGW PACKAGES PKGBUILD CI
 
 on:
   workflow_dispatch:
@@ -112,19 +112,20 @@ jobs:
             ./${{ matrix.project }}/*.src.7z
   cleanup:
     if: ${{ github.ref_name != 'master' }}
-    name: '🧹 Clean up deployment log'
+    name: '🧹 Clean Up Deployment Log'
     runs-on: ubuntu-latest
     needs: [build-packages]
     permissions: write-all
     steps:
-      - name: 🗑 Delete deployment
+      - name: '🗑 Delete Deployment'
         uses: strumwolf/delete-deployment-environment@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: env
           onlyRemoveDeployments: true
   release:
-    name: '🚚 Release'
+    if: ${{ github.ref_name == 'master' }}
+    name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
     environment: env
     # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
@@ -135,35 +136,27 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+        arch: ['clang-aarch64']
     steps:
     - name: '🛒 Checkout'
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
-    - name: '📝 Prepare release directory'
+    - name: '📝 Prepare Release Directory'
       run: |
         mkdir -p release
-    - name: '📩 Download artifacts'
+    - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
         path: release
-    - name: '🔍 Check Release Exists'
-      id: check-release-exists
+    - name: '🔍 Check Package Release Exists'
+      id: check-package-release-exists
       uses: insightsengineering/release-existence-action@v1.0.0
       with:
         release-tag: "${{ matrix.project }}"
-    - name: '🔍 Check Tag Exists'
-      id: check-tag
-      uses: mukunku/tag-exists-action@v1.7.0
-      with:
-        tag: "${{ matrix.project }}"
-    - name: '📤 Upload to existing release'
-      if: steps.check-release-exists.outputs.release-exists == 'true' 
+    - name: '📤 Upload to Existing Package Release'
+      if: steps.check-package-release-exists.outputs.release-exists == 'true' 
       run: |
-          cd ./release
-          ls -laR
-          cd ..
-
           gh release upload "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
@@ -171,13 +164,9 @@ jobs:
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
-    - name: '🔨 Create new release'
-      if: steps.check-release-exists.outputs.release-exists == 'false' 
+    - name: '🔨 Create New Package Release'
+      if: steps.check-package-release-exists.outputs.release-exists == 'false' 
       run: |
-          cd ./release
-          ls -laR
-          cd ..
-
           gh release create "${{ matrix.project }}" \
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
@@ -186,4 +175,29 @@ jobs:
             --notes 'Package Sources are in `*.src.7z`'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
-
+    - name: '🔍 Check Architecture Release Exists'
+      id: check-architecture-release-exists
+      uses: insightsengineering/release-existence-action@v1.0.0
+      with:
+        release-tag: "${{ matrix.arch }}"
+    - name: '📤 Upload to Existing Architecture Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      run: |
+          gh release upload "${{ matrix.arch }}" \
+            './release/${{ matrix.project }}-*/*.zst' \
+            './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ matrix.project }}-*/*.7z' \
+            --clobber
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+    - name: '🔨 Create New Architecture Package Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
+      run: |
+          gh release create "${{ matrix.arch }}" \
+            './release/${{ matrix.project }}-*/*.zst' \
+            './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ matrix.project }}-*/*.7z' \
+            --title ${{ matrix.project }} \
+            --notes 'Package Sources are in `*.src.7z`'
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
