@@ -139,6 +139,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+        compiler-arch: ['clang-aarch64']
     steps:
     - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
@@ -151,7 +152,7 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         project_directory=${{ matrix.project }}
-        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-$arch}
+        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-arch}
         echo "project_directory=$project_directory" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
@@ -195,7 +196,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-        arch: ['clang-aarch64']
+        compiler-arch: ['clang-aarch64']
     steps:
     - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
@@ -208,7 +209,7 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         project_directory=${{ matrix.project }}
-        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-$arch}
+        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-arch}
         echo "project_directory=$project_directory" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
