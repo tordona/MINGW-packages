@@ -127,7 +127,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: env
           onlyRemoveDeployments: true
-  release-separate-rackages:
+  release-separate-packages:
     name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
     environment: env
@@ -155,6 +155,7 @@ jobs:
         arch="aarch64"
         directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
+        echo "directory: $directory"
         echo "project_directory: $project_directory"
         echo "env.project_directory: ${{ env.project_directory }}"
     - name: '📩 Download Artifacts'
@@ -181,7 +182,7 @@ jobs:
       run: |
           gh release create "${{ matrix.project }}" \
             './release/${{ env.project_directory }}/*.zst' \
-            './release/${{ env.project_directory }}}/*.sig' \
+            './release/${{ env.project_directory }}/*.sig' \
             './release/${{ env.project_directory }}/*.7z' \
             --title ${{ matrix.project }} \
             --notes 'Package Sources are in `*.src.7z`'
@@ -199,7 +200,6 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-        compiler_arch: ['clang-aarch64']
     steps:
     - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
@@ -216,6 +216,7 @@ jobs:
         arch="aarch64"
         directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
+        echo "directory: $directory"
         echo "project_directory: $project_directory"
         echo "env.project_directory: ${{ env.project_directory }}"
     - name: '📩 Download Artifacts'
@@ -249,6 +250,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       # uses: mknejp/delete-release-assets@v1
       # with:
       #   token: ${{ github.token }}
