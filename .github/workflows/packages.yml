@@ -123,7 +123,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: env
           onlyRemoveDeployments: true
-  release-eparate-rackages:
+  release-separate-rackages:
     name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
     environment: env
@@ -223,14 +223,15 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
-      uses: mknejp/delete-release-assets@v1
-      with:
-        token: ${{ github.token }}
-        tag: ${{ matrix.arch }}
-        run: |
-          IFS=$'\n'
-          multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
-          echo multiline_asset_list
+      # uses: mknejp/delete-release-assets@v1
+      # with:
+      #   token: ${{ github.token }}
+      #   tag: ${{ matrix.arch }}
+      run: |
+        echo ${{ steps.deletable-assets.outputs.assets }}
+        IFS=$'\n'
+        multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
+        echo multiline_asset_list
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
@@ -250,3 +251,26 @@ jobs:
             --notes 'Test Notes'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
+  # release-set-latest:
+  #   name: '🚚 Release Architecture Packages'
+  #   needs: [release-separate-rackages, release-architecture-packages]
+  #   environment: env
+  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+  #       arch: ['clang-aarch64']
+  #   steps:
+  #     - name: '🔨 Create New Architecture Package Release'
+  #       run: |
+  #           gh release create "${{ matrix.arch }}" \
+  #             './release/${{ matrix.project }}-*/*.zst' \
+  #             './release/${{ matrix.project }}-*/*.sig' \
+  #             --title ${{ matrix.arch }} \
+  #             --notes 'Test Notes'
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.TOKEN }}
