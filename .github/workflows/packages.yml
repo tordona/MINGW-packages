@@ -106,13 +106,14 @@ jobs:
           pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
           7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig -x!*/
+      - uses: hmarr/debug-action@v3
       - name: '🗜️ debug'
         run: |
             echo "${project_directory}"
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
-          name: "${project_directory}"
+          name: $project_directory
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
