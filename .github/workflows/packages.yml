@@ -208,10 +208,13 @@ jobs:
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
+        ls -laR
         shopt -s extglob
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ matrix.project }}-*"
+        echo "entry"
         for file in $directory; do
+          echo "file for loop"
           echo $file
           filename=$(basename "${file}")
           if [[ -f "$file" ]]; then
@@ -226,6 +229,7 @@ jobs:
             gh release delete-asset ${{ matrix.arch }} "$filepattern"
           fi
         done
+        echo "done file for loop"
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
