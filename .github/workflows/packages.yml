@@ -106,10 +106,6 @@ jobs:
           pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
           7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig -x!*/
-      - uses: hmarr/debug-action@v3
-      - name: '🗜️ debug'
-        run: |
-            echo "${project_directory}"
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
@@ -118,151 +114,151 @@ jobs:
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
             ./${{ matrix.project }}/*.src.7z
-  # cleanup:
-  #   if: ${{ github.ref_name != 'master' }}
-  #   name: '🧹 Clean Up Deployment Log'
-  #   runs-on: ubuntu-latest
-  #   needs: [build-packages]
-  #   permissions: write-all
-  #   steps:
-  #     - name: '🗑 Delete Deployment'
-  #       uses: strumwolf/delete-deployment-environment@v2
-  #       with:
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-  #         environment: env
-  #         onlyRemoveDeployments: true
-  # release-separate-rackages:
-  #   name: '🚚 Release Separate Packages'
-  #   needs: [detect-directory-changes, build-packages, cleanup]
-  #   environment: env
-  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-  #   steps:
-  #   - uses: hmarr/debug-action@v3
-  #   - name: '🛒 Checkout'
-  #     uses: actions/checkout@v5
-  #     with:
-  #       fetch-depth: 0
-  #   - name: '📝 Prepare Release Directory'
-  #     run: |
-  #       mkdir -p release
-  #   - name: '📩 Download Artifacts'
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       path: release
-  #   - name: '🔍 Check Package Release Exists'
-  #     id: check-package-release-exists
-  #     uses: insightsengineering/release-existence-action@v1.0.0
-  #     with:
-  #       release-tag: "${{ matrix.project }}"
-  #   - name: '📤 Upload to Existing Package Release'
-  #     if: steps.check-package-release-exists.outputs.release-exists == 'true' 
-  #     run: |
-  #         gh release upload "${{ matrix.project }}" \
-  #           './release/${project_directory}/*.zst' \
-  #           './release/${project_directory}/*.sig' \
-  #           './release/${project_directory}/*.7z' \
-  #           --clobber
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
-  #   - name: '🔨 Create New Package Release'
-  #     if: steps.check-package-release-exists.outputs.release-exists == 'false' 
-  #     run: |
-  #         gh release create "${{ matrix.project }}" \
-  #           './release/${project_directory}/*.zst' \
-  #           './release/${project_directory}/*.sig' \
-  #           './release/${project_directory}/*.7z' \
-  #           --title ${{ matrix.project }} \
-  #           --notes 'Package Sources are in `*.src.7z`'
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
-  # release-architecture-packages:
-  #   name: '🚚 Release Architecture Packages'
-  #   needs: [detect-directory-changes, build-packages, cleanup]
-  #   environment: env
-  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-  #       arch: ['clang-aarch64']
-  #   steps:
-  #   - uses: hmarr/debug-action@v3
-  #   - name: '🛒 Checkout'
-  #     uses: actions/checkout@v5
-  #     with:
-  #       fetch-depth: 0
-  #   - name: '📝 Prepare Release Directory'
-  #     run: |
-  #       mkdir -p release
-  #   - name: '📩 Download Artifacts'
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       path: release
-  #   - name: '🔍 Check Architecture Release Exists'
-  #     id: check-architecture-release-exists
-  #     uses: insightsengineering/release-existence-action@v1.0.0
-  #     with:
-  #       release-tag: "${{ matrix.arch }}"
-  #   - name: '🧾 Create List of Older Assets to Delete'
-  #     id: 'deletable-assets'
-  #     if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
-  #     run: |
-  #       shopt -s extglob
-  #       ls -laR
-  #       IFS=$'\n'
-  #       declare -a asset_blob
-  #       regex="^(.*)-[0-9]+[.~]"
-  #       directory="./release/${{ matrix.project }}*/*"
-  #       for file in $directory; do
-  #         echo "file: $file"
-  #         filename=$(basename "${file}")
-  #         if [[ -f "$file" && "$filename" =~ $regex ]]; then
-  #           asset_blob+=(filepattern=${BASH_REMATCH[1]}*.${filename##*.})
-  #         fi
-  #       done
-  #       echo $asset_blob
-  #       echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
-  #     env:
-  #       GH_TOKEN: ${{ github.token }}
-  #   - name: '🗑️ Delete Older Packages From Existing Architecture Release'
-  #     # uses: mknejp/delete-release-assets@v1
-  #     # with:
-  #     #   token: ${{ github.token }}
-  #     #   tag: ${{ matrix.arch }}
-  #     run: |
-  #       echo ${${{ steps.deletable-assets.outputs.assets }}}
-  #       IFS=$'\n'
-  #       multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
-  #       echo $multiline_asset_list
-  #   - name: '📤 Upload to Existing Architecture Release'
-  #     if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
-  #     run: |
-  #         gh release upload "${{ matrix.arch }}" \
-  #           './release/${{ matrix.project }}-*/*.zst' \
-  #           './release/${{ matrix.project }}-*/*.sig' \
-  #           --clobber
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
-  #   - name: '🔨 Create New Architecture Package Release'
-  #     if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
-  #     run: |
-  #         gh release create "${{ matrix.arch }}" \
-  #           './release/${{ matrix.project }}-*/*.zst' \
-  #           './release/${{ matrix.project }}-*/*.sig' \
-  #           --title ${{ matrix.arch }} \
-  #           --notes 'Test Notes'
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.TOKEN }}
+  cleanup:
+    if: ${{ github.ref_name != 'master' }}
+    name: '🧹 Clean Up Deployment Log'
+    runs-on: ubuntu-latest
+    needs: [build-packages]
+    permissions: write-all
+    steps:
+      - name: '🗑 Delete Deployment'
+        uses: strumwolf/delete-deployment-environment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: env
+          onlyRemoveDeployments: true
+  release-separate-rackages:
+    name: '🚚 Release Separate Packages'
+    needs: [detect-directory-changes, build-packages, cleanup]
+    environment: env
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+    steps:
+    - uses: hmarr/debug-action@v3
+    - name: '🛒 Checkout'
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - name: '📝 Prepare Release Directory'
+      run: |
+        mkdir -p release
+    - name: '📩 Download Artifacts'
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: '🔍 Check Package Release Exists'
+      id: check-package-release-exists
+      uses: insightsengineering/release-existence-action@v1.0.0
+      with:
+        release-tag: "${{ matrix.project }}"
+    - name: '📤 Upload to Existing Package Release'
+      if: steps.check-package-release-exists.outputs.release-exists == 'true' 
+      run: |
+          gh release upload "${{ matrix.project }}" \
+            './release/${project_directory}/*.zst' \
+            './release/${project_directory}/*.sig' \
+            './release/${project_directory}/*.7z' \
+            --clobber
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+    - name: '🔨 Create New Package Release'
+      if: steps.check-package-release-exists.outputs.release-exists == 'false' 
+      run: |
+          gh release create "${{ matrix.project }}" \
+            './release/${project_directory}/*.zst' \
+            './release/${project_directory}/*.sig' \
+            './release/${project_directory}/*.7z' \
+            --title ${{ matrix.project }} \
+            --notes 'Package Sources are in `*.src.7z`'
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+  release-architecture-packages:
+    name: '🚚 Release Architecture Packages'
+    needs: [detect-directory-changes, build-packages, cleanup]
+    environment: env
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+        arch: ['clang-aarch64']
+    steps:
+    - uses: hmarr/debug-action@v3
+    - name: '🛒 Checkout'
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - name: '📝 Prepare Release Directory'
+      run: |
+        mkdir -p release
+    - name: '📩 Download Artifacts'
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: '🔍 Check Architecture Release Exists'
+      id: check-architecture-release-exists
+      uses: insightsengineering/release-existence-action@v1.0.0
+      with:
+        release-tag: "${{ matrix.arch }}"
+    - name: '🧾 Create List of Older Assets to Delete'
+      id: 'deletable-assets'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      run: |
+        shopt -s extglob
+        ls -laR
+        IFS=$'\n'
+        declare -a asset_blob
+        regex="^(.*)-[0-9]+[.~]"
+        directory="./release/${{ matrix.project }}*/*"
+        for file in $directory; do
+          echo "file: $file"
+          filename=$(basename "${file}")
+          if [[ -f "$file" && "$filename" =~ $regex ]]; then
+            asset_blob+=(filepattern=${BASH_REMATCH[1]}*.${filename##*.})
+          fi
+        done
+        echo $asset_blob
+        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+      # uses: mknejp/delete-release-assets@v1
+      # with:
+      #   token: ${{ github.token }}
+      #   tag: ${{ matrix.arch }}
+      run: |
+        echo ${${{ steps.deletable-assets.outputs.assets }}}
+        IFS=$'\n'
+        multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
+        echo $multiline_asset_list
+    - name: '📤 Upload to Existing Architecture Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      run: |
+          gh release upload "${{ matrix.arch }}" \
+            './release/${{ matrix.project }}-*/*.zst' \
+            './release/${{ matrix.project }}-*/*.sig' \
+            --clobber
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+    - name: '🔨 Create New Architecture Package Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
+      run: |
+          gh release create "${{ matrix.arch }}" \
+            './release/${{ matrix.project }}-*/*.zst' \
+            './release/${{ matrix.project }}-*/*.sig' \
+            --title ${{ matrix.arch }} \
+            --notes 'Test Notes'
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
   # release-set-latest:
   #   name: '🚚 Release Architecture Packages'
   #   needs: [release-separate-rackages, release-architecture-packages]
