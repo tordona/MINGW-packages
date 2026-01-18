@@ -113,7 +113,7 @@ jobs:
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
-          name: $project_directory
+          name: ${{ env.project_directory }}
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
