@@ -214,6 +214,12 @@ jobs:
         for file in "$directory"/*; do
           echo $file
           filename=$(basename "${file}")
+          if [[ -f "$file" ]]; then
+            echo "test1"
+          fi
+          if [[ "$filename" =~ $regex ]]; then
+            echo "test2"
+          fi
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
             filepattern=${BASH_REMATCH[1]}*.${filename##*.}
             echo $filepattern
