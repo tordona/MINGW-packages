@@ -211,7 +211,7 @@ jobs:
         shopt -s extglob
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ matrix.project }}-*"
-        for file in "$directory"/*; do
+        for file in $directory; do
           echo $file
           filename=$(basename "${file}")
           if [[ -f "$file" ]]; then
