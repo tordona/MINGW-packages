@@ -232,6 +232,8 @@ jobs:
           fi
         done
         echo "done file for loop"
+      env:
+        GH_TOKEN: ${{ github.token }}
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
