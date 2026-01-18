@@ -139,7 +139,6 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-        compiler_arch: ['clang-aarch64']
     steps:
     - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
@@ -152,7 +151,9 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         directory=${{ matrix.project }}
-        directory=${directory/mingw-w64/mingw-w64-$compiler_arch}
+        compiler="clang"
+        arch="aarch64"
+        directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
         echo "project_directory: $project_directory"
         echo "env.project_directory: ${{ env.project_directory }}""
@@ -211,7 +212,9 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         directory=${{ matrix.project }}
-        directory=${directory/mingw-w64/mingw-w64-$compiler_arch}
+        compiler="clang"
+        arch="aarch64"
+        directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
         echo "project_directory: $project_directory"
         echo "env.project_directory: ${{ env.project_directory }}""
