@@ -156,7 +156,7 @@ jobs:
         directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
         echo "project_directory: $project_directory"
-        echo "env.project_directory: ${{ env.project_directory }}""
+        echo "env.project_directory: ${{ env.project_directory }}"
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
@@ -217,7 +217,7 @@ jobs:
         directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
         echo "project_directory: $project_directory"
-        echo "env.project_directory: ${{ env.project_directory }}""
+        echo "env.project_directory: ${{ env.project_directory }}"
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
