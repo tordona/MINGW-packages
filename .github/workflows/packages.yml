@@ -211,12 +211,13 @@ jobs:
         ls -laR
         shopt -s extglob
         regex="^(.*)-[0-9]+[.~]"
-        directory="./release/${{ matrix.project }}-*"
+        directory="./release/${{ matrix.project }}-*/*"
         echo "entry"
         for file in $directory; do
           echo "file for loop"
           echo $file
           filename=$(basename "${file}")
+          echo $filename
           if [[ -f "$file" ]]; then
             echo "test1"
           fi
@@ -225,6 +226,7 @@ jobs:
           fi
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
             filepattern=${BASH_REMATCH[1]}*.${filename##*.}
+            echo "filepattern::"
             echo $filepattern
             gh release delete-asset ${{ matrix.arch }} "$filepattern"
           fi
