@@ -124,7 +124,6 @@ jobs:
           environment: env
           onlyRemoveDeployments: true
   release:
-    if: ${{ github.ref_name == 'master' }}
     name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
     environment: env
