@@ -148,6 +148,11 @@ jobs:
     - name: '📝 Prepare Release Directory'
       run: |
         mkdir -p release
+    - name: '🗜️ Parse Directory name'
+      run: |
+        project_directory=${{ matrix.project }}
+        project_directory=${filename/mingw-w64/mingw-w64-$compiler-$arch}
+        echo "project_directory=$filename" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
@@ -161,9 +166,9 @@ jobs:
       if: steps.check-package-release-exists.outputs.release-exists == 'true' 
       run: |
           gh release upload "${{ matrix.project }}" \
-            './release/${project_directory}/*.zst' \
-            './release/${project_directory}/*.sig' \
-            './release/${project_directory}/*.7z' \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}/*.sig' \
+            './release/${{ env.project_directory }}/*.7z' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -171,9 +176,9 @@ jobs:
       if: steps.check-package-release-exists.outputs.release-exists == 'false' 
       run: |
           gh release create "${{ matrix.project }}" \
-            './release/${project_directory}/*.zst' \
-            './release/${project_directory}/*.sig' \
-            './release/${project_directory}/*.7z' \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}}/*.sig' \
+            './release/${{ env.project_directory }}/*.7z' \
             --title ${{ matrix.project }} \
             --notes 'Package Sources are in `*.src.7z`'
       env:
@@ -200,6 +205,11 @@ jobs:
     - name: '📝 Prepare Release Directory'
       run: |
         mkdir -p release
+    - name: '🗜️ Parse Directory name'
+      run: |
+        project_directory=${{ matrix.project }}
+        project_directory=${filename/mingw-w64/mingw-w64-$compiler-$arch}
+        echo "project_directory=$filename" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
@@ -218,7 +228,7 @@ jobs:
         IFS=$'\n'
         declare -a asset_blob
         regex="^(.*)-[0-9]+[.~]"
-        directory="./release/${{ matrix.project }}*/*"
+        directory="./release/${{ env.project_directory }}/*"
         for file in $directory; do
           echo "file: $file"
           filename=$(basename "${file}")
