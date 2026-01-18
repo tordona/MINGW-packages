@@ -85,6 +85,7 @@ jobs:
             --detach-sig "$pkg"
           done
       - name: '🗜️ 7Zip Archive Sources'
+        id: 'archive-sources'
         run: |
           # archive and make available sources directly related to this package
           # pull version properties and reconstitute filename
@@ -96,8 +97,11 @@ jobs:
           version="$prefix$pkgver.$pkgrel"
           compiler="clang"
           arch="aarch64"
+
           filename=${{ matrix.project }}
           filename=${filename/mingw-w64/mingw-w64-$compiler-$arch}
+          
+          echo "project_directory=$filename" >> $GITHUB_ENV
 
           pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
@@ -105,7 +109,7 @@ jobs:
       - name: '📤 Upload artifact: package'
         uses: actions/upload-artifact@v6
         with: 
-          name: ${{ matrix.project }}-aarch64
+          name: ${project_directory}
           path: |
             ./${{ matrix.project }}/*.zst
             ./${{ matrix.project }}/*.zst.sig
@@ -157,9 +161,9 @@ jobs:
       if: steps.check-package-release-exists.outputs.release-exists == 'true' 
       run: |
           gh release upload "${{ matrix.project }}" \
-            './release/${{ matrix.project }}-*/*.zst' \
-            './release/${{ matrix.project }}-*/*.sig' \
-            './release/${{ matrix.project }}-*/*.7z' \
+            './release/${project_directory}/*.zst' \
+            './release/${project_directory}/*.sig' \
+            './release/${project_directory}/*.7z' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -167,9 +171,9 @@ jobs:
       if: steps.check-package-release-exists.outputs.release-exists == 'false' 
       run: |
           gh release create "${{ matrix.project }}" \
-            './release/${{ matrix.project }}-*/*.zst' \
-            './release/${{ matrix.project }}-*/*.sig' \
-            './release/${{ matrix.project }}-*/*.7z' \
+            './release/${project_directory}/*.zst' \
+            './release/${project_directory}/*.sig' \
+            './release/${project_directory}/*.7z' \
             --title ${{ matrix.project }} \
             --notes 'Package Sources are in `*.src.7z`'
       env:
@@ -214,8 +218,9 @@ jobs:
         IFS=$'\n'
         declare -a asset_blob
         regex="^(.*)-[0-9]+[.~]"
-        directory="./release/${{ matrix.project }}-**/*"
+        directory="./release/${{ matrix.project }}*/*"
         for file in $directory; do
+          echo "file: $file"
           filename=$(basename "${file}")
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
             asset_blob+=(filepattern=${BASH_REMATCH[1]}*.${filename##*.})
