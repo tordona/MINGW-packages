@@ -205,16 +205,19 @@ jobs:
       uses: insightsengineering/release-existence-action@v1.0.0
       with:
         release-tag: "${{ matrix.arch }}"
-    - name: '📤 Delete Older Packages From Existing Architecture Release'
+    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
         shopt -s extglob
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ matrix.project }}-*"
         for file in "$directory"/*; do
+          echo $file
           filename=$(basename "${file}")
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
-            gh release delete-asset ${{ matrix.arch }} ${BASH_REMATCH[1]}*.${filename##*.}
+            filepattern=${BASH_REMATCH[1]}*.${filename##*.}
+            echo $filepattern
+            gh release delete-asset ${{ matrix.arch }} "$filepattern"
           fi
         done
     - name: '📤 Upload to Existing Architecture Release'
