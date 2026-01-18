@@ -209,10 +209,12 @@ jobs:
       id: 'deletable-assets'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
-        declare -a asset_blob
         shopt -s extglob
+        ls -laR
+        IFS=$'\n'
+        declare -a asset_blob
         regex="^(.*)-[0-9]+[.~]"
-        directory="./release/${{ matrix.project }}-*/*"
+        directory="./release/${{ matrix.project }}-**/*"
         for file in $directory; do
           filename=$(basename "${file}")
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
@@ -220,7 +222,7 @@ jobs:
           fi
         done
         echo $asset_blob
-        echo "assets=asset_blob" >> "$GITHUB_OUTPUT"
+        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
