@@ -151,8 +151,8 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         project_directory=${{ matrix.project }}
-        project_directory=${filename/mingw-w64/mingw-w64-$compiler-$arch}
-        echo "project_directory=$filename" >> $GITHUB_ENV
+        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-$arch}
+        echo "project_directory=$project_directory" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
@@ -208,8 +208,8 @@ jobs:
     - name: '🗜️ Parse Directory name'
       run: |
         project_directory=${{ matrix.project }}
-        project_directory=${filename/mingw-w64/mingw-w64-$compiler-$arch}
-        echo "project_directory=$filename" >> $GITHUB_ENV
+        project_directory=${project_directory/mingw-w64/mingw-w64-$compiler-$arch}
+        echo "project_directory=$project_directory" >> $GITHUB_ENV
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
       with:
