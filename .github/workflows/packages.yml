@@ -123,7 +123,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: env
           onlyRemoveDeployments: true
-  release:
+  release-eparate-rackages:
     name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
     environment: env
@@ -135,8 +135,8 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-        arch: ['clang-aarch64']
     steps:
+    - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
       uses: actions/checkout@v5
       with:
@@ -174,6 +174,32 @@ jobs:
             --notes 'Package Sources are in `*.src.7z`'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
+  release-architecture-packages:
+    name: '🚚 Release Architecture Packages'
+    needs: [detect-directory-changes, build-packages, cleanup]
+    environment: env
+    # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+        arch: ['clang-aarch64']
+    steps:
+    - uses: hmarr/debug-action@v3
+    - name: '🛒 Checkout'
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - name: '📝 Prepare Release Directory'
+      run: |
+        mkdir -p release
+    - name: '📩 Download Artifacts'
+      uses: actions/download-artifact@v4
+      with:
+        path: release
     - name: '🔍 Check Architecture Release Exists'
       id: check-architecture-release-exists
       uses: insightsengineering/release-existence-action@v1.0.0
@@ -196,7 +222,7 @@ jobs:
             './release/${{ matrix.project }}-*/*.zst' \
             './release/${{ matrix.project }}-*/*.sig' \
             './release/${{ matrix.project }}-*/*.7z' \
-            --title ${{ matrix.project }} \
+            --title ${{ matrix.arch }} \
             --notes 'Package Sources are in `*.src.7z`'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
