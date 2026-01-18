@@ -205,35 +205,32 @@ jobs:
       uses: insightsengineering/release-existence-action@v1.0.0
       with:
         release-tag: "${{ matrix.arch }}"
-    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+    - name: '🧾 Create List of Older Assets to Delete'
+      id: 'deletable-assets'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
-        ls -laR
+        declare -a asset_blob
         shopt -s extglob
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ matrix.project }}-*/*"
-        echo "entry"
         for file in $directory; do
-          echo "file for loop"
-          echo $file
           filename=$(basename "${file}")
-          echo $filename
-          if [[ -f "$file" ]]; then
-            echo "test1"
-          fi
-          if [[ "$filename" =~ $regex ]]; then
-            echo "test2"
-          fi
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
-            filepattern=${BASH_REMATCH[1]}*.${filename##*.}
-            echo "filepattern::"
-            echo $filepattern
-            gh release delete-asset ${{ matrix.arch }} "$filepattern"
+            asset_blob+=(filepattern=${BASH_REMATCH[1]}*.${filename##*.})
           fi
         done
-        echo "done file for loop"
+        echo "assets=asset_blob" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
+    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+      uses: mknejp/delete-release-assets@v1
+      with:
+        token: ${{ github.token }}
+        tag: ${{ matrix.arch }}
+        run: |
+          IFS=$'\n'
+          multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
+          echo multiline_asset_list
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
