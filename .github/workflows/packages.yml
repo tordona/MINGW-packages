@@ -264,8 +264,8 @@ jobs:
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
           gh release upload "${{ matrix.arch }}" \
-            './release/${{ matrix.project }}-*/*.zst' \
-            './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}/*.sig' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -273,8 +273,8 @@ jobs:
       if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
       run: |
           gh release create "${{ matrix.arch }}" \
-            './release/${{ matrix.project }}-*/*.zst' \
-            './release/${{ matrix.project }}-*/*.sig' \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}/*.sig' \
             --title ${{ matrix.arch }} \
             --notes 'Test Notes'
       env:
