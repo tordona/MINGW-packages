@@ -279,26 +279,21 @@ jobs:
             --notes 'Test Notes'
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
-  # release-set-latest:
-  #   name: '🚚 Release Architecture Packages'
-  #   needs: [release-separate-rackages, release-architecture-packages]
-  #   environment: env
-  #   # if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
-  #       arch: ['clang-aarch64']
-  #   steps:
-  #     - name: '🔨 Create New Architecture Package Release'
-  #       run: |
-  #           gh release create "${{ matrix.arch }}" \
-  #             './release/${{ matrix.project }}-*/*.zst' \
-  #             './release/${{ matrix.project }}-*/*.sig' \
-  #             --title ${{ matrix.arch }} \
-  #             --notes 'Test Notes'
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.TOKEN }}
+  release-set-latest:
+    name: '🚚 Release Set Latest'
+    needs: [release-separate-packages, release-architecture-packages]
+    environment: env
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['clang-aarch64']
+    steps:
+      - name: '🔨 Force Set Latest Release'
+        run: |
+            gh release edit "${{ matrix.arch }}" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
