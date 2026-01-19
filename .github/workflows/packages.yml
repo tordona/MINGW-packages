@@ -319,6 +319,8 @@ jobs:
       matrix:
         arch: ['clang-aarch64']
     steps:
+      - name: '🛒 Checkout'
+        uses: actions/checkout@v5
       - name: '🔍 Check Architecture Release Exists'
         id: check-architecture-release-exists
         uses: insightsengineering/release-existence-action@v1.0.0
