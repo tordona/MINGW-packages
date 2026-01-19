@@ -250,7 +250,7 @@ jobs:
         echo "${asset_blob[*]}"
         echo "---"
         echo "$assets"
-        # echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
