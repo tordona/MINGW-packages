@@ -127,6 +127,35 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: env
           onlyRemoveDeployments: true
+  # create-release-per-project:
+  #   name: '🚚 Create Release Per Project'
+  #   needs: [detect-directory-changes]
+  #   environment: env
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+  #   steps:
+  #   - name: '🛒 Checkout'
+  #     uses: actions/checkout@v5
+  #     with:
+  #       fetch-depth: 0
+  #   - name: '🔍 Check Package Release Exists'
+  #     id: check-package-release-exists
+  #     uses: insightsengineering/release-existence-action@v1.0.0
+  #     with:
+  #       release-tag: "${{ matrix.project }}"
+  #   - name: 'Create Package Release'
+  #     if: steps.check-package-release-exists.outputs.release-exists == 'false' 
+  #     run: |
+  #         gh release create "${{ matrix.project }}" \
+  #           --title "${{ matrix.project }}"
+  #           --clobber
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.TOKEN }}
   release-separate-packages:
     name: '🚚 Release Separate Packages'
     needs: [detect-directory-changes, build-packages, cleanup]
@@ -256,6 +285,7 @@ jobs:
       with:
         token: ${{ github.token }}
         tag: ${{ matrix.arch }}
+        fail-if-no-assets: false
         assets: |
           ${{ env.assets }}"
     - name: '📤 Upload to Existing Architecture Release'
@@ -278,7 +308,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
   release-set-latest:
-    name: '🚚 Release Set Latest'
+    name: '💫 Set Latest Release'
     needs: [release-separate-packages, release-architecture-packages]
     environment: env
     runs-on: ubuntu-latest
@@ -294,7 +324,7 @@ jobs:
         uses: insightsengineering/release-existence-action@v1.0.0
         with:
           release-tag: "${{ matrix.arch }}"
-      - name: '🔨 Force Set Latest Release'
+      - name: '✨ Force Set Latest Release'
         if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
         run: |
             gh release edit "${{ matrix.arch }}" \
