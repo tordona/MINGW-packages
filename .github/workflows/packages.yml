@@ -266,10 +266,11 @@ jobs:
             echo "filename2: $filename"
           fi
         done
-
+        echo "---1"
         asset_blob=$(echo "$asset_blob" | sed 's/\s/&\n/g')
+        echo "---2"
         echo "$asset_blob"
-        echo "assets=$asset_blob" >> "$GITHUB_OUTPUT"
+        echo "assets=$asset_blob" >> $GITHUB_ENV
         echo "---3"
       env:
         GH_TOKEN: ${{ github.token }}
@@ -280,7 +281,7 @@ jobs:
         token: ${{ github.token }}
         tag: ${{ matrix.arch }}
         assets: |
-          "${{ steps.deletable-assets.outputs.assets }}"
+          ${{ env.assets }}"
       # run: |
       #   echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
       #   echo "${{ steps.deletable-assets.outputs.assets }}" | tr ' ' '\n'
