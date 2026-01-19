@@ -253,7 +253,6 @@ jobs:
         # assets="${asset_blob[*]// /'\n'}"
         # echo "assets=$assets" >> "$GITHUB_OUTPUT"
 
-        
         shopt -s extglob
         asset_blog=""
         regex="^(.*)-[0-9]+[.~]"
@@ -262,7 +261,7 @@ jobs:
           filename=$(basename "${file}")
           echo "filename1: $filename"
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
-            asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
+            asset_blob+="${BASH_REMATCH[1]}*.${filename##*.}"
             asset_blob+="\n"
             echo "filename2: $filename"
           fi
