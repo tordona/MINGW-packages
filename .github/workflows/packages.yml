@@ -94,7 +94,7 @@ jobs:
           if [[ -n $epoch ]]; then
             prefix="$epoch~"
           fi
-          version="$prefix$pkgver.$pkgrel"
+          version="$prefix$pkgver-$pkgrel"
           compiler="clang"
           arch="aarch64"
 
@@ -217,8 +217,6 @@ jobs:
         arch="aarch64"
         directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
         echo "project_directory=$directory" >> $GITHUB_ENV
-        echo "directory: $directory"
-        echo "project_directory: $project_directory"
         echo "env.project_directory: ${{ env.project_directory }}"
     - name: '📩 Download Artifacts'
       uses: actions/download-artifact@v4
@@ -291,7 +289,13 @@ jobs:
       matrix:
         arch: ['clang-aarch64']
     steps:
+      - name: '🔍 Check Architecture Release Exists'
+        id: check-architecture-release-exists
+        uses: insightsengineering/release-existence-action@v1.0.0
+        with:
+          release-tag: "${{ matrix.arch }}"
       - name: '🔨 Force Set Latest Release'
+        if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
         run: |
             gh release edit "${{ matrix.arch }}" \
             --latest
