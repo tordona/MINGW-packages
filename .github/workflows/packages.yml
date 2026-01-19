@@ -200,6 +200,7 @@ jobs:
       fail-fast: false
       matrix:
         project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+        arch: ["clang-aarch64"]
     steps:
     - uses: hmarr/debug-action@v3
     - name: '🛒 Checkout'
