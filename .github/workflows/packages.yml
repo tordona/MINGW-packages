@@ -273,6 +273,7 @@ jobs:
             echo "filename2: $filename"
           fi
         done
+        asset_blob="${asset_blob%% *}"
         echo "assets<<EOF" >> $GITHUB_ENV
         asset_blob=$(echo "$asset_blob" | sed 's/\s/&\n/g')
         echo "$asset_blob" >> $GITHUB_ENV 
