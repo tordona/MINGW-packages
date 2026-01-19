@@ -266,12 +266,17 @@ jobs:
             echo "filename2: $filename"
           fi
         done
-        echo "---1"
+        # echo "---1"
+        # asset_blob=$(echo "$asset_blob" | sed 's/\s/&\n/g')
+        # echo "---2"
+        # echo "$asset_blob"
+        # echo "assets=$asset_blob" >> $GITHUB_ENV
+        # echo "---3"
+
+        echo "assets<<EOF" >> $GITHUB_ENV
         asset_blob=$(echo "$asset_blob" | sed 's/\s/&\n/g')
-        echo "---2"
-        echo "$asset_blob"
-        echo "assets=$asset_blob" >> $GITHUB_ENV
-        echo "---3"
+        echo "$asset_blob" >> $GITHUB_ENV 
+        echo "EOF" >> $GITHUB_ENV
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
