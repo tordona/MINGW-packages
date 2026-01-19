@@ -233,8 +233,29 @@ jobs:
       id: 'deletable-assets'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
+        # shopt -s extglob
+        # declare -a asset_blob
+        # regex="^(.*)-[0-9]+[.~]"
+        # directory="./release/${{ env.project_directory }}/*"
+        # for file in $directory; do
+        #   filename=$(basename "${file}")
+        #   echo "filename: $filename"
+        #   if [[ -f "$file" && "$filename" =~ $regex ]]; then
+        #     asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
+        #   fi
+        # done
+        # assets="${asset_blob[*]}"
+        # echo "$asset_blob"
+        # echo "---"
+        # echo "${asset_blob[*]}"
+        # echo "---"
+        # echo "$assets"
+        # assets="${asset_blob[*]// /'\n'}"
+        # echo "assets=$assets" >> "$GITHUB_OUTPUT"
+
+        
         shopt -s extglob
-        declare -a asset_blob
+        asset_blog=""
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ env.project_directory }}/*"
         for file in $directory; do
@@ -242,15 +263,11 @@ jobs:
           echo "filename: $filename"
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
             asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
+            asset_blob+="\n"
           fi
         done
-        assets="${asset_blob[*]}"
         echo "$asset_blob"
-        echo "---"
-        echo "${asset_blob[*]}"
-        echo "---"
-        echo "$assets"
-        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+        echo "assets=$assets" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
@@ -260,9 +277,7 @@ jobs:
         token: ${{ github.token }}
         tag: ${{ matrix.arch }}
         assets: |
-          for asset in "${steps.deletable-assets.outputs.assets[@]}"; do
-            echo "$asset"
-          done
+          ${{ steps.deletable-assets.outputs.assets }}
       # run: |
       #   echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
       #   echo "${{ steps.deletable-assets.outputs.assets }}" | tr ' ' '\n'
