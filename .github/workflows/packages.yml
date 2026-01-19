@@ -249,7 +249,8 @@ jobs:
           fi
         done
         echo $asset_blob
-        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+        echo ${asset_blob[*]}
+        # echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
@@ -259,7 +260,7 @@ jobs:
       #   token: ${{ github.token }}
       #   tag: ${{ matrix.arch }}
       run: |
-        echo ${${{ steps.deletable-assets.outputs.assets }}}
+        echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
         IFS=$'\n'
         multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
         echo $multiline_asset_list
