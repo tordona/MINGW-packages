@@ -233,6 +233,7 @@ jobs:
       id: 'deletable-assets'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
+        IFS=$"\n"
         shopt -s extglob
         declare -a asset_blob
         regex="^(.*)-[0-9]+[.~]"
@@ -243,17 +244,19 @@ jobs:
             asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
           fi
         done
-        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+        assets="${asset_blob[*]}"
+        echo assets
+        # echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
-    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
-      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
-      uses: mknejp/delete-release-assets@v1
-      with:
-        token: ${{ github.token }}
-        tag: ${{ matrix.arch }}
-        assets: |
-          echo ${{ steps.deletable-assets.outputs.assets }} | tr ' ' '\n'
+    # - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+    #   if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+    #   uses: mknejp/delete-release-assets@v1
+    #   with:
+    #     token: ${{ github.token }}
+    #     tag: ${{ matrix.arch }}
+    #     assets: |
+    #       echo ${{ steps.deletable-assets.outputs.assets }} | tr ' ' '\n'
       # run: |
       #   echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
       #   echo ${{ steps.deletable-assets.outputs.assets }} | tr ' ' '\n'
