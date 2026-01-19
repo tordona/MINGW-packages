@@ -234,8 +234,6 @@ jobs:
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
         shopt -s extglob
-        ls -laR
-        IFS=$'\n'
         declare -a asset_blob
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ env.project_directory }}/*"
@@ -248,9 +246,7 @@ jobs:
             asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
           fi
         done
-        echo $asset_blob
-        echo ${asset_blob[*]}
-        # echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
+        echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
@@ -261,9 +257,9 @@ jobs:
       #   tag: ${{ matrix.arch }}
       run: |
         echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
-        IFS=$'\n'
-        multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
-        echo $multiline_asset_list
+        # IFS=$'\n'
+        # multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
+        # echo $multiline_asset_list
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
