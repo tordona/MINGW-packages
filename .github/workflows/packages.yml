@@ -238,11 +238,8 @@ jobs:
         regex="^(.*)-[0-9]+[.~]"
         directory="./release/${{ env.project_directory }}/*"
         for file in $directory; do
-          echo "file: $file"
           filename=$(basename "${file}")
           if [[ -f "$file" && "$filename" =~ $regex ]]; then
-            echo "inner1: ${BASH_REMATCH[1]}"
-            echo "inner2: ${BASH_REMATCH[1]}*.${filename##*.}"
             asset_blob+=("${BASH_REMATCH[1]}*.${filename##*.}")
           fi
         done
@@ -251,15 +248,18 @@ jobs:
         GH_TOKEN: ${{ github.token }}
     - name: '🗑️ Delete Older Packages From Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
-      # uses: mknejp/delete-release-assets@v1
-      # with:
-      #   token: ${{ github.token }}
-      #   tag: ${{ matrix.arch }}
-      run: |
-        echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
-        # IFS=$'\n'
-        # multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
-        # echo $multiline_asset_list
+      uses: mknejp/delete-release-assets@v1
+      with:
+        token: ${{ github.token }}
+        tag: ${{ matrix.arch }}
+        assets: |
+          echo ${{ steps.deletable-assets.outputs.assets }} | tr ' ' '\n'
+      # run: |
+      #   echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
+      #   echo ${{ steps.deletable-assets.outputs.assets }} | tr ' ' '\n'
+      #   # IFS=$'\n'
+      #   # multiline_asset_list="${${{ steps.deletable-assets.outputs.assets }}[*]}"
+      #   # echo $multiline_asset_list
     - name: '📤 Upload to Existing Architecture Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
