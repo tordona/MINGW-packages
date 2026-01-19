@@ -245,7 +245,11 @@ jobs:
           fi
         done
         assets="${asset_blob[*]}"
-        echo assets
+        echo $asset_blob
+        echo "---"
+        echo ${asset_blob[*]}
+        echo "---"
+        echo $assets
         # echo "assets=${asset_blob[*]}" >> "$GITHUB_OUTPUT"
       env:
         GH_TOKEN: ${{ github.token }}
