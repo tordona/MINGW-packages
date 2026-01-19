@@ -280,7 +280,7 @@ jobs:
         token: ${{ github.token }}
         tag: ${{ matrix.arch }}
         assets: |
-          ${{ steps.deletable-assets.outputs.assets }}
+          "${{ steps.deletable-assets.outputs.assets }}"
       # run: |
       #   echo "assets: ${${{ steps.deletable-assets.outputs.assets }}}"
       #   echo "${{ steps.deletable-assets.outputs.assets }}" | tr ' ' '\n'
