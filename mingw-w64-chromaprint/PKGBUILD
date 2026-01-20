@@ -15,7 +15,8 @@ msys2_references=(
   'archlinux: chromaprint'
   'gentoo: media-libs/chromaprint'
 )
-depends=("${MINGW_PACKAGE_PREFIX}-cc-libs")
+depends=("${MINGW_PACKAGE_PREFIX}-cc-libs"
+        "${MINGW_PACKAGE_PREFIX}-fftw")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-ninja")
