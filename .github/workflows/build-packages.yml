@@ -1,0 +1,101 @@
+name: Build Packages (PKGBUILD)
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+jobs:
+  build-packages:
+    name: '⚒️ Build ${{ inputs.project }}'
+    runs-on: windows-11-arm
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        shell: msys2 {0}
+        working-directory: ./${{ inputs.project }}
+    steps:
+    - name: '🛒 Checkout'
+      uses: actions/checkout@v5
+    - name: '🖥️ Get number of CPU cores'
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
+    - name: '🔧 Setup MSYS2'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANGARM64
+        update: true
+        install:
+            git
+            make
+            patch
+            patchutils
+        pacboy:
+            gcc-compat:a
+            cmake:a
+            diffutils:a
+    - name: '🔩 Update Packager Meta'
+      run: |
+        if test -f "/etc/makepkg_mingw.conf"; then
+          sed -i 's/#PACKAGER="John Doe <john@doe.com>"/PACKAGER="CI (${{ github.repository_owner }}\/${{ github.triggering_actor }}\/${{ github.run_id }})"/' /etc/makepkg_mingw.conf
+        fi
+    - name: '📦 Run makepkg-mingw on PKGBUILD'
+      run: |
+        # set parallel worker count
+        export CMAKE_BUILD_PARALLEL_LEVEL=${{ steps.cpu-cores.outputs.count }}
+        MAKEFLAGS="-j${{ steps.cpu-cores.outputs.count }}"
+        
+        # makepkg-mingw on project directory: ${{ inputs.project }}
+        makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
+    - name: '🤖 Test Install Package'
+      run: |
+        pacman -U --overwrite '*' --noconfirm *.zst
+    - name: '📩 Import GPG Key'
+      if: ${{ github.ref_name == 'master' }}
+      run: |
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
+    - name: '🔏 GPG Detach Sign: package'
+      if: ${{ github.ref_name == 'master' }}
+      run: |
+        for pkg in *.zst; do
+          echo $pkg;
+          gpg --batch --yes --pinentry-mode loopback \
+          --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+          --output "$pkg.sig" \
+          --detach-sig "$pkg"
+        done
+    - name: '🗜️ 7Zip Archive Sources'
+      id: 'archive-sources'
+      run: |
+        # archive and make available sources directly related to this package
+        # pull version properties and reconstitute filename
+        source ./PKGBUILD
+        prefix=""
+        if [[ -n $epoch ]]; then
+          prefix="$epoch~"
+        fi
+        version="$prefix$pkgver-$pkgrel"
+        compiler="clang"
+        arch="aarch64"
+
+        filename=${{ inputs.project }}
+        filename=${filename/mingw-w64/mingw-w64-$compiler-$arch}
+        
+        echo "project_directory=$filename" >> $GITHUB_ENV
+
+        pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
+
+        7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig -x!*/
+    - name: '📤 Upload artifact: package'
+      uses: actions/upload-artifact@v6
+      with: 
+        name: ${{ env.project_directory }}
+        path: |
+          ./${{ inputs.project }}/*.zst
+          ./${{ inputs.project }}/*.zst.sig
+          ./${{ inputs.project }}/*.src.7z

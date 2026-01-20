@@ -1,0 +1,103 @@
+name: Release Architecture Packages
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      project:
+        required: true
+        type: string
+jobs:
+  release-architecture-packages:
+    if: ${{ github.ref_name == 'master' }}
+    name: '🚚 Release Architecture Packages'
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: hmarr/debug-action@v3
+    - name: '🛒 Checkout'
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - name: '📝 Prepare Release Directory'
+      run: |
+        mkdir -p release
+    - name: '🗜️ Parse Directory name'
+      run: |
+        directory=${{ inputs.project }}
+        compiler="clang"
+        arch="aarch64"
+        directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
+        echo "project_directory=$directory" >> $GITHUB_ENV
+        echo "env.project_directory: ${{ env.project_directory }}"
+    - name: '📩 Download Artifacts'
+      uses: actions/download-artifact@v4
+      with:
+        path: release
+    - name: '🔍 Check Architecture Release Exists'
+      id: check-architecture-release-exists
+      uses: insightsengineering/release-existence-action@v1.0.0
+      with:
+        release-tag: "${{ inputs.arch }}"
+    - name: '🧾 Create List of Older Assets to Delete'
+      id: 'deletable-assets'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      run: |
+        shopt -s extglob
+        declare -a asset_list
+        regex="^(.*)-[0-9]+[.~]"
+        directory="./release/${{ env.project_directory }}/*"
+        for file in $directory; do
+          filename=$(basename "${file}")
+          if [[ -f "$file" && "$filename" =~ $regex ]]; then
+            asset_list+=("${BASH_REMATCH[1]}*.${filename##*.}")
+          fi
+        done
+        asset_list="${asset_list[*]}"
+        echo $asset_list
+        echo "assets<<EOF" >> $GITHUB_ENV
+        asset_list=$(echo "$asset_list" | sed 's/\s/&\n/g')
+        echo "$asset_list" >> $GITHUB_ENV 
+        echo "EOF" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - name: '🗑️ Delete Older Packages From Existing Architecture Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      uses: mknejp/delete-release-assets@v1
+      with:
+        token: ${{ github.token }}
+        tag: ${{ inputs.arch }}
+        fail-if-no-assets: false
+        assets: |
+          ${{ env.assets }}
+    - name: '📤 Upload to Existing Architecture Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+      run: |
+          gh release upload "${{ inputs.arch }}" \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}/*.sig' \
+            --clobber
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+    - name: '🔨 Create New Architecture Package Release'
+      if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
+      run: |
+          notes=$(cat <<EOF
+          Each package as it's own tag. Check the tag for current and archived versions, along with source.
+          Package Sources are in `*.src.7z`
+          EOF
+          )
+          gh release create "${{ inputs.arch }}" \
+            './release/${{ env.project_directory }}/*.zst' \
+            './release/${{ env.project_directory }}/*.sig' \
+            --title ${{ matrix.arch }} \
+            --notes "$notes"
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}

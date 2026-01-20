@@ -1,0 +1,104 @@
+name: MINGW PACKAGES PKGBUILD CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      deploy_target:
+        description: 'Deployment target environment'
+        required: false
+        type: string
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.vscode/**'
+      - '.devcontainer/**'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-directory-changes:
+    name: '🕵 Detect Directory Changes'
+    runs-on: ubuntu-latest
+    environment: 'base-packages'
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - name: '🛒 Checkout'
+        uses: actions/checkout@v5
+      - name: '🕵 Detect Directory Changes'
+        id: detect
+        uses: tchupp/actions-detect-directory-changes@v1
+        with:
+          included-paths: "./ming**"
+          if-these-paths-change-return-all-included-paths: "./.github/**"
+  build-packages:
+    if: needs.detect-directory-changes.outputs.changed != '[]'
+    name: '👷 Build Packages (PKGBUILD)'
+    needs: [detect-directory-changes]
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+    uses: ./.github/workflows/build-packages.yml
+    secrets: inherit
+    with:
+      environment: 'base-packages'
+      project: ${{ matrix.project }}
+  cleanup-logs:
+    if: ${{ github.ref_name != 'master' }}
+    name: '🧹 Clean Up Deployment Log'
+    runs-on: ubuntu-latest
+    needs: [build-packages]
+    permissions: write-all
+    steps:
+      - name: '🗑 Delete Deployment'
+        uses: strumwolf/delete-deployment-environment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: 'base-packages'
+          onlyRemoveDeployments: true
+  release-separate-packages:
+    name: '🚚 Release Separate Packages'
+    needs: [detect-directory-changes, build-packages, cleanup-logs]
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+    uses: ./.github/workflows/release-separate.yml
+    secrets: inherit
+    with:
+      environment: 'base-packages'
+      project: ${{ matrix.project }}
+  release-architecture-packages:
+    name: '🚚 Release Architecture Packages'
+    needs: [detect-directory-changes, build-packages, cleanup-logs]
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.detect-directory-changes.outputs.changed) }}
+    uses: ./.github/workflows/release-architecture.yml
+    secrets: inherit
+    with:
+      environment: 'base-packages'
+      arch: 'clang-aarch64'
+      project: ${{ matrix.project }}
+  release-set-latest:
+    name: '💫 Set Latest Release'
+    needs: [release-separate-packages, release-architecture-packages]
+    uses: ./.github/workflows/release-set-latest.yml
+    secrets: inherit
+    with:
+      environment: 'base-packages'
+      arch: 'clang-aarch64'

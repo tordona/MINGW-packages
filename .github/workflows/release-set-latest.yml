@@ -1,0 +1,34 @@
+name: Set Latest Release
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+jobs:
+  release-set-latest:
+    if: ${{ github.ref_name != 'master' }}
+    name: '💫 Set Architecture as Latest Release'
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps: 
+      - name: '🛒 Checkout'
+        uses: actions/checkout@v5
+      - name: '🔍 Check Architecture Release Exists'
+        id: check-architecture-release-exists
+        uses: insightsengineering/release-existence-action@v1.0.0
+        with:
+          release-tag: "${{ inputs.arch }}"
+      - name: '✨ Force Set Latest Release'
+        if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
+        run: |
+            gh release edit "${{ inputs.arch }}" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
