@@ -89,15 +89,9 @@ jobs:
     - name: '🔨 Create New Architecture Package Release'
       if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
       run: |
-          notes=$(cat <<EOF
-          Each package as it's own tag. Check the tag for current and archived versions, along with source.
-          Package Sources are in `*.src.7z`
-          EOF
-          )
           gh release create "${{ inputs.arch }}" \
             './release/${{ env.project_directory }}/*.zst' \
             './release/${{ env.project_directory }}/*.sig' \
             --title ${{ matrix.arch }} \
-            --notes "$notes"
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
