@@ -15,6 +15,9 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-cc-libs"
   "${MINGW_PACKAGE_PREFIX}-ggml"
   "${MINGW_PACKAGE_PREFIX}-SDL2"
+  "${MINGW_PACKAGE_PREFIX}-shaderc"
+  "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
+  "${MINGW_PACKAGE_PREFIX}-opencl-headers"
 )
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
