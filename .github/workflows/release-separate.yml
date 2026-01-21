@@ -11,57 +11,58 @@ on:
         type: string
 jobs:
   release-separate-packages:
-    if: ${{ github.ref_name == 'master' }}
+    if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     name: '🚚 Release Separate Packages'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-    - name: '🛒 Checkout'
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 0
-    - name: '📝 Prepare Release Directory'
-      run: |
-        mkdir -p release
-    - name: '🗜️ Parse Directory name'
-      run: |
-        directory=${{ inputs.project }}
-        compiler="clang"
-        arch="aarch64"
-        directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
-        echo "project_directory=$directory" >> $GITHUB_ENV
-        echo "directory: $directory"
-        echo "project_directory: $project_directory"
-        echo "env.project_directory: ${{ env.project_directory }}"
-    - name: '📩 Download Artifacts'
-      uses: actions/download-artifact@v4
-      with:
-        path: release
-    - name: '🔍 Check Package Release Exists'
-      id: check-package-release-exists
-      uses: insightsengineering/release-existence-action@v1.0.0
-      with:
-        release-tag: "${{ inputs.project }}"
-    - name: '📤 Upload to Existing Package Release'
-      if: steps.check-package-release-exists.outputs.release-exists == 'true' 
-      run: |
-          gh release upload "${{ inputs.project }}" \
-            './release/${{ env.project_directory }}/*.zst' \
-            './release/${{ env.project_directory }}/*.sig' \
-            './release/${{ env.project_directory }}/*.7z' \
-            --clobber
-      env:
-        GITHUB_TOKEN: ${{ github.TOKEN }}
-    - name: '🔨 Create New Package Release'
-      if: steps.check-package-release-exists.outputs.release-exists == 'false' 
-      run: |
-          gh release create "${{ inputs.project }}" \
-            './release/${{ env.project_directory }}/*.zst' \
-            './release/${{ env.project_directory }}/*.sig' \
-            './release/${{ env.project_directory }}/*.7z' \
-            --title ${{ inputs.project }} \
-            --notes 'Package Sources are in `*.src.7z`'
-      env:
-        GITHUB_TOKEN: ${{ github.TOKEN }}
+      - uses: hmarr/debug-action@v3
+      - name: '🛒 Checkout'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: '📝 Prepare Release Directory'
+        run: |
+          mkdir -p release
+      - name: '🗜️ Parse Directory name'
+        run: |
+          directory=${{ inputs.project }}
+          compiler="clang"
+          arch="aarch64"
+          directory=${directory/mingw-w64/mingw-w64-$compiler-$arch}
+          echo "project_directory=$directory" >> $GITHUB_ENV
+          echo "directory: $directory"
+          echo "project_directory: $project_directory"
+          echo "env.project_directory: ${{ env.project_directory }}"
+      - name: '📩 Download Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+      - name: '🔍 Check Package Release Exists'
+        id: check-package-release-exists
+        uses: insightsengineering/release-existence-action@v1.0.0
+        with:
+          release-tag: "${{ inputs.project }}"
+      - name: '📤 Upload to Existing Package Release'
+        if: steps.check-package-release-exists.outputs.release-exists == 'true' 
+        run: |
+            gh release upload "${{ inputs.project }}" \
+              './release/${{ env.project_directory }}/*.zst' \
+              './release/${{ env.project_directory }}/*.sig' \
+              './release/${{ env.project_directory }}/*.7z' \
+              --clobber
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+      - name: '🔨 Create New Package Release'
+        if: steps.check-package-release-exists.outputs.release-exists == 'false' 
+        run: |
+            gh release create "${{ inputs.project }}" \
+              './release/${{ env.project_directory }}/*.zst' \
+              './release/${{ env.project_directory }}/*.sig' \
+              './release/${{ env.project_directory }}/*.7z' \
+              --title ${{ inputs.project }} \
+              --notes 'Package Sources are in `*.src.7z`'
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}

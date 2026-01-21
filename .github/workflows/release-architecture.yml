@@ -14,7 +14,7 @@ on:
         type: string
 jobs:
   release-architecture-packages:
-    if: ${{ github.ref_name == 'master' }}
+    if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     name: '🚚 Release Architecture Packages'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest

@@ -11,13 +11,14 @@ on:
         type: string
 jobs:
   release-set-latest:
-    if: ${{ github.ref_name != 'master' }}
+    if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
     name: '💫 Set Architecture as Latest Release'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps: 
+      - uses: hmarr/debug-action@v3
       - name: '🛒 Checkout'
         uses: actions/checkout@v5
       - name: '🔍 Check Architecture Release Exists'
