@@ -92,6 +92,6 @@ jobs:
           gh release create "${{ inputs.arch }}" \
             './release/${{ env.project_directory }}/*.zst' \
             './release/${{ env.project_directory }}/*.sig' \
-            --title ${{ matrix.arch }} \
+            --title ${{ inputs.arch }} \
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
