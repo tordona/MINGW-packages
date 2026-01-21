@@ -53,7 +53,7 @@ jobs:
         makepkg-mingw --cleanbuild --force --noconfirm --syncdeps --skippgpcheck
     - name: '🤖 Test Install Package'
       run: |
-        pacman -U --overwrite '*' --noconfirm *.zst
+        pacman -U --overwrite '*' --noconfirm mingw*.zst
     - name: '📩 Import GPG Key'
       if: ${{ github.ref_name == 'master' }}
       run: |
