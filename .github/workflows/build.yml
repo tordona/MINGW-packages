@@ -71,7 +71,7 @@ jobs:
           onlyRemoveDeployments: true
   release-separate-packages:
     name: '🚚 Release Separate Packages'
-    needs: [detect-directory-changes, build-packages, cleanup-logs]
+    needs: [detect-directory-changes, build-packages]
     strategy:
       fail-fast: false
       matrix:
@@ -83,7 +83,7 @@ jobs:
       project: ${{ matrix.project }}
   release-architecture-packages:
     name: '🚚 Release Architecture Packages'
-    needs: [detect-directory-changes, build-packages, cleanup-logs]
+    needs: [detect-directory-changes, build-packages]
     strategy:
       fail-fast: false
       matrix:

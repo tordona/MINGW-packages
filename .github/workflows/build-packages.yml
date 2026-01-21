@@ -56,12 +56,12 @@ jobs:
       run: |
         pacman -U --overwrite '*' --noconfirm mingw*.zst
     - name: '📩 Import GPG Key'
-      if: github.event_name != 'pull_request' && github.repository_owner == 'tordona'
+      if: ${{ github.event_name != 'pull_request' && github.repository_owner == github.triggering_actor && github.ref_name == 'master' }}
       run: |
         echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
         echo "${{ secrets.GPG_FINGERPRINT }}:6:" | gpg --batch --import-ownertrust
     - name: '🔏 GPG Detach Sign: package'
-      if: github.event_name != 'pull_request' && github.repository_owner == 'tordona'
+      if: ${{ github.event_name != 'pull_request' && github.repository_owner == github.triggering_actor && github.ref_name == 'master' }}
       run: |
         for pkg in *.zst; do
           echo $pkg;

@@ -11,7 +11,7 @@ on:
         type: string
 jobs:
   release-set-latest:
-    if: github.event_name != 'pull_request' && startswith(github.ref, 'refs/tags/')
+    if: ${{ github.ref_name == 'master' }}
     name: '💫 Set Architecture as Latest Release'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest

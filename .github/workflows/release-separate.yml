@@ -11,7 +11,7 @@ on:
         type: string
 jobs:
   release-separate-packages:
-    if: github.event_name != 'pull_request' && github.ref_name == 'master'
+    if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
     name: '🚚 Release Separate Packages'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
