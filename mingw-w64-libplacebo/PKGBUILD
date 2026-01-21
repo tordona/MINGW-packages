@@ -25,10 +25,15 @@ makedepends=("git"
              "${MINGW_PACKAGE_PREFIX}-vulkan-headers")
 license=('LGPL2.1')
 source=(${url}/-/archive/v${pkgver}/${_realname}-v${pkgver}.tar.gz
-        "0001-add-cflags-private.patch")
+        "0002-utils_gen_py.patch")
 sha256sums=('4efe1c8d4da3c61295eb5fdfa50e6037409d8425eb3c15dd86788679c4ce59ee'
-            'bda9bed8b8fff7e69fe750b6f2caafde67f63343d05698a81fb1f7b27ac4cca3')
+            '7cb0cbe494c1345635ed1e07dad74fca4f55a6d57f00ce8ccd947b6c18aee56d')
 use_libdovi=true
+
+prepare() {
+  sed -i "s/@PACKAGE@/${_realname}-v${pkgver}/g" "0002-utils_gen_py.patch"
+  patch -p0 -i "${srcdir}"/0002-utils_gen_py.patch
+}
 
 build() {
   common_config=(
