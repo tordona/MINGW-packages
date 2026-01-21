@@ -49,9 +49,9 @@ jobs:
         if: steps.check-package-release-exists.outputs.release-exists == 'true' 
         run: |
             gh release upload "${{ inputs.project }}" \
-              './release/${{ env.project_directory }}/*.zst' \
-              './release/${{ env.project_directory }}/*.sig' \
-              './release/${{ env.project_directory }}/*.7z' \
+              './release/${{ env.project_directory }}/mingw*.zst' \
+              './release/${{ env.project_directory }}/mingw*.sig' \
+              './release/${{ env.project_directory }}/mingw*.7z' \
               --clobber
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -59,9 +59,9 @@ jobs:
         if: steps.check-package-release-exists.outputs.release-exists == 'false' 
         run: |
             gh release create "${{ inputs.project }}" \
-              './release/${{ env.project_directory }}/*.zst' \
-              './release/${{ env.project_directory }}/*.sig' \
-              './release/${{ env.project_directory }}/*.7z' \
+              './release/${{ env.project_directory }}/mingw*.zst' \
+              './release/${{ env.project_directory }}/mingw*.sig' \
+              './release/${{ env.project_directory }}/mingw*.7z' \
               --title ${{ inputs.project }} \
               --notes 'Package Sources are in `*.src.7z`'
         env:

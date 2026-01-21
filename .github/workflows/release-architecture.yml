@@ -81,8 +81,8 @@ jobs:
       if: steps.check-architecture-release-exists.outputs.release-exists == 'true' 
       run: |
           gh release upload "${{ inputs.arch }}" \
-            './release/${{ env.project_directory }}/*.zst' \
-            './release/${{ env.project_directory }}/*.sig' \
+            './release/${{ env.project_directory }}/mingw*.zst' \
+            './release/${{ env.project_directory }}/mingw*.sig' \
             --clobber
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}
@@ -90,8 +90,8 @@ jobs:
       if: steps.check-architecture-release-exists.outputs.release-exists == 'false' 
       run: |
           gh release create "${{ inputs.arch }}" \
-            './release/${{ env.project_directory }}/*.zst' \
-            './release/${{ env.project_directory }}/*.sig' \
+            './release/${{ env.project_directory }}/mingw*.zst' \
+            './release/${{ env.project_directory }}/mingw*.sig' \
             --title ${{ inputs.arch }} \
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}

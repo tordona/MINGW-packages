@@ -63,7 +63,7 @@ jobs:
     - name: '🔏 GPG Detach Sign: package'
       if: ${{ github.event_name != 'pull_request' && github.repository_owner == github.triggering_actor && github.ref_name == 'master' }}
       run: |
-        for pkg in *.zst; do
+        for pkg in mingw*.zst; do
           echo $pkg;
           gpg --batch --yes --pinentry-mode loopback \
           --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
@@ -91,12 +91,12 @@ jobs:
 
         pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
 
-        7z a $filename-$version-any.pkg.src.7z * -x!*.zst -x!*.sig -x!*/
+        7z a $filename-$version-any.pkg.src.7z * -x!mingw*.zst -x!mingw*.sig -x!*/
     - name: '📤 Upload artifact: package'
       uses: actions/upload-artifact@v6
       with: 
         name: ${{ env.project_directory }}
         path: |
-          ./${{ inputs.project }}/*.zst
-          ./${{ inputs.project }}/*.zst.sig
-          ./${{ inputs.project }}/*.src.7z
+          ./${{ inputs.project }}/mingw*.zst
+          ./${{ inputs.project }}/mingw*.zst.sig
+          ./${{ inputs.project }}/mingw*.src.7z
