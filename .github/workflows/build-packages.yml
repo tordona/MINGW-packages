@@ -39,6 +39,7 @@ jobs:
             gcc-compat:a
             cmake:a
             diffutils:a
+            7zip:a
     - name: '🔩 Update Packager Meta'
       run: |
         if test -f "/etc/makepkg_mingw.conf"; then
@@ -75,22 +76,22 @@ jobs:
       run: |
         # archive and make available sources directly related to this package
         # pull version properties and reconstitute filename
-        source ./PKGBUILD
-        prefix=""
-        if [[ -n $epoch ]]; then
-          prefix="$epoch~"
-        fi
-        version="$prefix$pkgver-$pkgrel"
         compiler="clang"
         arch="aarch64"
 
         filename=${{ inputs.project }}
         filename=${filename/mingw-w64/mingw-w64-$compiler-$arch}
-        
+        suffix="-any.pkg.tar.zst"
+        for file in ${filename}*${suffix}; do
+          if [ -f "$file" ]; then
+              version=${file//$filename-/}
+              version=${version//$suffix/}
+              echo "file: $file"
+              echo "version: $version"
+          fi
+        done
         echo "project_directory=$filename" >> $GITHUB_ENV
-
-        pacman -S mingw-w64-clang-aarch64-7zip --noconfirm
-
+        ls -la
         7z a $filename-$version-any.pkg.src.7z * -x!mingw*.zst -x!mingw*.sig -x!*/
     - name: '📤 Upload artifact: package'
       uses: actions/upload-artifact@v6
