@@ -1,0 +1,11 @@
+--- xeve-0.5.1/pkgconfig/xeve.pc.in
++++ xeve-0.5.1pkgconfig/xeve.pc.in.mod
+@@ -1,7 +1,7 @@
+ # --- xeve.pc.in file ---
+ prefix=@CMAKE_INSTALL_PREFIX@
+ exec_prefix=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@
+-libdir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
++libdir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/@LIB_NAME@
+ includedir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@/@LIB_NAME@
+ 
+ Name: xeve
